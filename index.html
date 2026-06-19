@@ -140,10 +140,11 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
         <div id="init-status" style="margin-top:8px;font-size:11px;color:#888"></div>
       </div>
       <div class="tips">
-        <strong>초기 데이터 파일 구조:</strong><br>
-        섹션1 (A~F열): 일별 · 키워드 · 그룹 · 요일 · PC · MO → DB손보 / DB손보_전사 / 업종K<br>
-        섹션2 (H~L열): 일별 · 키워드 · 그룹 · 요일 · PC+MO → 경쟁사 (KB손보/삼성화재/현대해상 통합)<br>
-        섹션3 (N~S열): 일별 · 키워드 · 그룹 · 요일 · PC · MO → 업종K 추가
+        <strong>초기 데이터 파일 구조 (아래 칼럼 순서 그대로 업로드):</strong><br>
+        섹션1 (A~F열): <strong>업종 · 키워드 · 일별 · 요일 · PC · MO</strong> → DB손보 / DB손보_전사 / 업종K<br>
+        섹션2 (H~L열): <strong>업종 · 키워드 · 일별 · 요일 · PC+MO</strong> → 경쟁사 (KB손보/삼성화재/현대해상)<br>
+        섹션3 (N~S열): <strong>업종 · 키워드 · 일별 · 요일 · PC · MO</strong> → 업종K 추가<br>
+        <span style="color:#c0392b">※ 칼럼 순서가 다르면 데이터가 잘못 저장됩니다. 반드시 위 순서를 지켜주세요.</span>
       </div>
     </div>
 
@@ -153,21 +154,22 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
 
         <div style="background:#003087;color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px">
           <div style="font-size:14px;font-weight:700;margin-bottom:4px">📋 DB손해보험 키워드 1일치 계산기 사용 설명서</div>
-          <div style="font-size:11px;opacity:0.8">별도 프로그램 설치 불필요 · 브라우저에서 바로 실행</div>
+          <div style="font-size:11px;opacity:0.8">별도 프로그램 설치 불필요 · 크롬 브라우저에서 바로 실행</div>
         </div>
-
-
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">🔰 처음 사용 시 (최초 1회)</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
           <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">1</span>
           <strong>📦 초기 데이터 로드 탭</strong>으로 이동</div>
           <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">2</span>
-          <strong>통합_문서1_30일_일일_쿼리.xlsx</strong> 파일 업로드</div>
+          아래 칼럼 순서의 통합 엑셀 파일 업로드<br>
+          <span style="font-size:11px;color:#888;margin-left:24px">섹션1: 업종/키워드/일별/요일/PC/MO · 섹션2: 업종/키워드/일별/요일/PC+MO · 섹션3: 업종/키워드/일별/요일/PC/MO</span></div>
           <div style="margin-bottom:4px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">3</span>
           "✅ N개 데이터 저장 완료" 메시지 확인 → 이후부터는 이 단계 불필요</div>
           <div style="font-size:11px;color:#888;margin-top:8px;padding-top:8px;border-top:1px solid #eee">
-          ※ 초기 파일은 최근 29일치 일별 데이터가 담긴 통합 엑셀입니다. 브라우저에 저장되므로 다음 접속 시에도 유지됩니다.
+          ※ 초기 데이터는 <strong>같은 크롬, 같은 PC</strong>에서 최초 1회만 업로드하면 됩니다.<br>
+          ※ 이후 매일 트렌드K 파일만 업로드하면 계산기가 자동으로 데이터를 누적 저장합니다.<br>
+          ※ 다른 PC나 다른 브라우저에서 시작할 때만 초기 데이터 재업로드가 필요합니다.
           </div>
         </div>
 
@@ -214,11 +216,27 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">⚠️ 주의사항</div>
-        <div style="background:#fffbe6;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:11px;color:#7d5a00">
+        <div style="background:#fffbe6;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:11px;color:#7d5a00;margin-bottom:14px">
           • 파일명 앞 8자리가 날짜로 인식됩니다. 파일명 형식을 반드시 지켜주세요.<br>
-          • 같은 브라우저에서만 저장 데이터가 유지됩니다. (다른 브라우저나 시크릿 모드에서는 초기 로드 필요)<br>
+          • <strong>같은 크롬, 같은 PC</strong>에서만 저장 데이터가 유지됩니다. 다른 환경에서는 초기 로드 필요.<br>
           • 저장 데이터 초기화 시 초기 데이터부터 다시 로드해야 합니다.<br>
-          • 기준 키워드 목록에 없는 키워드는 자동으로 제외됩니다.
+          • 기준 키워드 목록에 없는 키워드는 자동으로 제외됩니다.<br>
+          • 초기 데이터 파일의 칼럼 순서가 맞지 않으면 데이터가 잘못 저장됩니다.
+        </div>
+
+        <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">🔧 음수 보정 방법</div>
+        <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;font-size:11px;margin-bottom:14px">
+          <div style="margin-bottom:8px">계산 결과에서 음수값이 나오면 <strong>Step 3 음수 보정</strong> 단계에서 자동 보정합니다.</div>
+          <div style="background:#f0f4ff;border-radius:6px;padding:10px 12px;margin-bottom:8px;line-height:1.9">
+            <strong>보정 계산 방식:</strong><br>
+            ① 음수 키워드의 <strong>전월 1일~말일</strong> 쿼리 합산 (초기 데이터에서 자동 계산)<br>
+            ② 네이버 데이터랩 API로 <strong>전월 1일 ~ 결과날짜 전일</strong>까지 일별 지수 조회<br>
+            ③ 보정값 = 전월합산 × (해당일 지수 ÷ 전체 지수 합산)<br>
+          </div>
+          <div style="font-size:11px;color:#888">
+            ※ 보정을 위해 네이버 데이터랩 API 키(Client ID / Secret)가 필요합니다. 최초 1회 입력 후 브라우저에 저장됩니다.<br>
+            ※ 초기 데이터에 전월 데이터가 없는 경우 "데이터 없음"으로 표시됩니다.
+          </div>
         </div>
 
       </div>
@@ -430,6 +448,10 @@ function parseTrendK(wb){
 
 // ══════════════════════════════════════════════════════════
 // 초기 데이터 파싱 (raw:true → 정확한 숫자, Date 객체)
+// 새 칼럼 구조:
+// 섹션1 (A~F): 업종(0)/키워드(1)/일별(2)/요일(3)/PC(4)/MO(5)
+// 섹션2 (H~L): 업종(7)/키워드(8)/일별(9)/요일(10)/PC+MO(11)
+// 섹션3 (N~S): 업종(13)/키워드(14)/일별(15)/요일(16)/PC(17)/MO(18)
 // ══════════════════════════════════════════════════════════
 function parseInitFile(wb){
   const ws=wb.Sheets[wb.SheetNames[0]]; if(!ws) return 0;
@@ -452,8 +474,8 @@ function parseInitFile(wb){
       if(mdy){let y=mdy[3];if(y.length===2)y='20'+y;return `${y}-${p2(mdy[1])}-${p2(mdy[2])}`;}
       return null;
     }
-    // 섹션1
-    const dt1=fmtDt(row[0]);
+    // 섹션1: 업종(0)/키워드(1)/일별(2)/요일(3)/PC(4)/MO(5)
+    const dt1=fmtDt(row[2]);
     if(dt1&&row[1]){
       const kw=String(row[1]).trim().toLowerCase();
       if(kw in KW_REF){
@@ -462,8 +484,8 @@ function parseInitFile(wb){
         store[sk][dt1]={pc:toNum(row[4]),mo:toNum(row[5]),type:'pc_mo'}; count++;
       }
     }
-    // 섹션2 (경쟁사: KB손보/삼성화재/현대해상 → 각 그룹별 PC+MO 통합)
-    const dt2=fmtDt(row[7]);
+    // 섹션2: 업종(7)/키워드(8)/일별(9)/요일(10)/PC+MO(11)
+    const dt2=fmtDt(row[9]);
     if(dt2&&row[8]){
       const kw2=String(row[8]).trim().toLowerCase();
       const compGrp=INIT_COMP_MAP[kw2];
@@ -473,8 +495,8 @@ function parseInitFile(wb){
         compByDate[sk][dt2]=(compByDate[sk][dt2]||0)+toNum(row[11]); count++;
       }
     }
-    // 섹션3
-    const dt3=fmtDt(row[13]);
+    // 섹션3: 업종(13)/키워드(14)/일별(15)/요일(16)/PC(17)/MO(18)
+    const dt3=fmtDt(row[15]);
     if(dt3&&row[14]){
       const kw3=String(row[14]).trim().toLowerCase();
       if(kw3 in KW_REF){
@@ -1039,16 +1061,18 @@ async function runNegFix(){
     const r = info.rep;
     const negDates = [...new Set(info.dates)].sort();
     const firstDate = negDates[0];
+    const lastDate  = negDates[negDates.length-1];
     const bd = new Date(firstDate+'T00:00:00');
     const prevMonthStart = fmt(new Date(bd.getFullYear(), bd.getMonth()-1, 1));
-    const lastDate = negDates[negDates.length-1];
+    // 비중 계산 범위: 전월1일 ~ 음수날짜 전일
+    const dayBefore = fmt(new Date(bd.getFullYear(), bd.getMonth(), bd.getDate()-1));
 
     if(r.isComp){
       const mqVal = prevSums[kwKey+'_pcmo'] || 0;
       if(!mqVal){ log.push(`⚠️ ${r.kw} PC+MO 전월합산 데이터 없음 — 건너뜀`); continue; }
       txtEl.textContent = `API 조회: ${r.kw} PC+MO`;
       try{
-        const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, '');
+        const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, dayBefore, '');
         const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b,0);
         const doneSet = new Set();
         allNegRows.filter(row=>((row.kwLower||row.kw||'').toLowerCase()===(info.kwLower||r.kwLower||r.kw||'').toLowerCase())&&row.isComp).forEach(row=>{
@@ -1073,7 +1097,7 @@ async function runNegFix(){
         else {
           txtEl.textContent = `API 조회: ${r.kw} PC`;
           try{
-            const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, 'pc');
+            const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, dayBefore, 'pc');
             const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b,0);
             const doneSetPc = new Set();
             allNegRows.filter(row=>((row.kwLower||row.kw||'').toLowerCase()===(info.kwLower||r.kwLower||r.kw||'').toLowerCase())&&!row.isComp&&row.negPc).forEach(row=>{
@@ -1097,7 +1121,7 @@ async function runNegFix(){
         else {
           txtEl.textContent = `API 조회: ${r.kw} MO`;
           try{
-            const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, 'mo');
+            const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, dayBefore, 'mo');
             const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b,0);
             const doneSetMo = new Set();
             allNegRows.filter(row=>((row.kwLower||row.kw||'').toLowerCase()===(info.kwLower||r.kwLower||r.kw||'').toLowerCase())&&!row.isComp&&row.negMo).forEach(row=>{
