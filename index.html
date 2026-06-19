@@ -905,18 +905,31 @@ function loadApiKeys(){
   if(sec) document.getElementById('naverClientSecret').value = sec;
 }
 
-// 전월마감쿼리 저장 키
-const MQ_STORE_KEY = 'db_mq_store_v1';
-function loadMqStore(){ try{return JSON.parse(localStorage.getItem(MQ_STORE_KEY)||'{}')}catch{return{}} }
-function saveMqStore(d){ localStorage.setItem(MQ_STORE_KEY, JSON.stringify(d)); }
+// 전월 1일~말일 합산 (localStorage store에서)
+function getPrevMonthSum(kwLower, grp, resultDate, device){
+  const store = loadStore();
+  const bd = new Date(resultDate+'T00:00:00');
+  const prevStart = fmt(new Date(bd.getFullYear(), bd.getMonth()-1, 1));
+  const prevEnd   = fmt(new Date(bd.getFullYear(), bd.getMonth(), 0)); // 전월 말일
+  const sk = storeKey(kwLower, grp);
+  const dates = store[sk] || {};
+  let sum = 0;
+  Object.entries(dates).forEach(([dt, val])=>{
+    if(dt >= prevStart && dt <= prevEnd){
+      if(device === 'pc') sum += val.pc || 0;
+      else if(device === 'mo') sum += val.mo || 0;
+      else sum += (val.pcmo || 0);
+    }
+  });
+  return r2(sum);
+}
 
-// 계산 완료 후 음수 목록 + 전월마감쿼리 입력 폼 표시
+// 계산 완료 후 음수 목록 표시
 function updateNegList(){
   const listEl = document.getElementById('fix-neg-list');
   const btn    = document.getElementById('btn-fix-run');
   if(!calcDates.length){ listEl.textContent='계산 먼저 실행해주세요.'; btn.disabled=true; return; }
 
-  // 음수 키워드 수집 — 키워드(소문자)+isComp 기준으로 중복 제거
   const allNegRows = [];
   calcDates.forEach(dt=>{
     Object.values(calcResults[dt]||{}).forEach(rows=>{
@@ -929,8 +942,8 @@ function updateNegList(){
     btn.disabled=true; return;
   }
 
-  // 키워드별 대표 row (첫번째) + 해당 키워드에 속한 날짜 목록
-  const kwMap = {}; // { kwKey: { rep, dates } }
+  // 키워드별 중복 제거
+  const kwMap = {};
   allNegRows.forEach(r=>{
     const kwLower = (r.kwLower || r.kw || '').toLowerCase();
     const kwKey = kwLower+'|'+(r.isComp?'comp':'noncomp');
@@ -942,97 +955,64 @@ function updateNegList(){
   });
 
   const kwEntries = Object.entries(kwMap);
-  const mq = loadMqStore();
-  const inputStyle = 'width:100px;padding:4px 7px;border:1px solid #cdd5e0;border-radius:5px;font-size:11px;font-family:inherit;text-align:right';
+
+  // 각 키워드별 전월합산 미리 계산 (첫번째 날짜 기준)
+  const prevSums = {};
+  kwEntries.forEach(([kwKey, info])=>{
+    const r = info.rep;
+    const firstDate = [...new Set(info.dates)].sort()[0];
+    if(r.isComp){
+      prevSums[kwKey+'_pcmo'] = getPrevMonthSum(info.kwLower, r.grp, firstDate, 'pcmo');
+    } else {
+      if(info.negPc) prevSums[kwKey+'_pc'] = getPrevMonthSum(info.kwLower, r.grp, firstDate, 'pc');
+      if(info.negMo) prevSums[kwKey+'_mo'] = getPrevMonthSum(info.kwLower, r.grp, firstDate, 'mo');
+    }
+  });
 
   listEl.innerHTML = `
-    <div style="margin-bottom:8px;color:#c0392b;font-weight:700">음수 키워드 ${allNegRows.length}건 발견 (고유 키워드 ${kwEntries.length}개) — 전월 마감 쿼리 입력 후 보정 실행</div>
-    <div style="font-size:10px;color:#888;margin-bottom:10px">※ 저장된 값은 자동으로 불러와집니다. 수정 버튼으로 변경 가능합니다.</div>
+    <div style="margin-bottom:8px;color:#c0392b;font-weight:700">음수 키워드 ${allNegRows.length}건 발견 (고유 키워드 ${kwEntries.length}개)</div>
+    <div style="font-size:10px;color:#888;margin-bottom:10px">※ 전월 마감 쿼리는 초기 데이터 기준으로 자동 계산됩니다.</div>
     <table style="width:100%;border-collapse:collapse;font-size:11px">
       <thead>
         <tr style="background:#f0f4ff">
           <th style="padding:6px 8px;text-align:left;border:1px solid #dde">키워드</th>
           <th style="padding:6px 8px;text-align:left;border:1px solid #dde">그룹</th>
           <th style="padding:6px 8px;text-align:center;border:1px solid #dde">음수 날짜</th>
-          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">전월마감 PC쿼리</th>
-          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">전월마감 MO쿼리</th>
-          <th style="padding:6px 8px;text-align:center;border:1px solid #dde"></th>
+          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">전월마감 PC</th>
+          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">전월마감 MO</th>
         </tr>
       </thead>
       <tbody>
-        ${kwEntries.map(([kwKey, info], i)=>{
+        ${kwEntries.map(([kwKey, info])=>{
           const r = info.rep;
-          const savedPc   = mq[kwKey+'_pc']  || '';
-          const savedMo   = mq[kwKey+'_mo']  || '';
-          const savedPcmo = mq[kwKey+'_pcmo']|| '';
-          const hasSaved  = r.isComp ? !!savedPcmo : (!!savedPc || !!savedMo);
-          const dateStr   = [...new Set(info.dates)].sort().join(', ');
-
+          const dateStr = [...new Set(info.dates)].sort().join(', ');
+          const pcSum   = prevSums[kwKey+'_pc']   || 0;
+          const moSum   = prevSums[kwKey+'_mo']   || 0;
+          const pcmoSum = prevSums[kwKey+'_pcmo'] || 0;
+          const warn = (v) => v===0 ? '<span style="color:#c0392b">⚠️ 데이터 없음</span>' : `<span style="color:#003087;font-weight:600">${v.toLocaleString()}</span>`;
           if(r.isComp){
-            return `<tr id="row_${i}" style="border-bottom:1px solid #f0f0f4">
+            return `<tr style="border-bottom:1px solid #f0f0f4">
               <td style="padding:6px 8px;border:1px solid #eee;font-weight:600;color:#003087">${r.kw}</td>
               <td style="padding:6px 8px;border:1px solid #eee;color:#888">${r.grp}</td>
               <td style="padding:6px 8px;border:1px solid #eee;text-align:center;font-size:10px">${dateStr}</td>
-              <td colspan="2" style="padding:6px 8px;border:1px solid #eee;text-align:center">
-                ${hasSaved
-                  ? `<span id="mq_disp_pcmo_${i}" style="color:#003087;font-weight:600">${savedPcmo.toLocaleString()}</span>
-                     <input type="number" id="mq_pcmo_${i}" value="${savedPcmo}" style="${inputStyle};width:130px;display:none" min="0" data-key="${kwKey}_pcmo">`
-                  : `<input type="number" id="mq_pcmo_${i}" placeholder="PC+MO 마감쿼리" value="${savedPcmo}" style="${inputStyle};width:130px" min="0" data-key="${kwKey}_pcmo">`
-                }
-              </td>
-              <td style="padding:6px 8px;border:1px solid #eee;text-align:center">
-                ${hasSaved ? `<button onclick="editMqRow(${i},'comp')" style="font-size:10px;padding:2px 7px;border:1px solid #cdd;border-radius:4px;background:#f8f9fb;cursor:pointer">수정</button>` : ''}
-              </td>
+              <td colspan="2" style="padding:6px 8px;border:1px solid #eee;text-align:center">${warn(pcmoSum)}</td>
             </tr>`;
           }
-          return `<tr id="row_${i}" style="border-bottom:1px solid #f0f0f4">
+          return `<tr style="border-bottom:1px solid #f0f0f4">
             <td style="padding:6px 8px;border:1px solid #eee;font-weight:600;color:#003087">${r.kw}</td>
             <td style="padding:6px 8px;border:1px solid #eee;color:#888">${r.grp}</td>
             <td style="padding:6px 8px;border:1px solid #eee;text-align:center;font-size:10px">${dateStr}</td>
-            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">
-              ${info.negPc
-                ? (savedPc
-                    ? `<span id="mq_disp_pc_${i}" style="color:#003087;font-weight:600">${Number(savedPc).toLocaleString()}</span>
-                       <input type="number" id="mq_pc_${i}" value="${savedPc}" style="${inputStyle};display:none" min="0" data-key="${kwKey}_pc">`
-                    : `<input type="number" id="mq_pc_${i}" placeholder="PC 마감쿼리" style="${inputStyle}" min="0" data-key="${kwKey}_pc">`)
-                : '<span style="color:#aaa">-</span>'}
-            </td>
-            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">
-              ${info.negMo
-                ? (savedMo
-                    ? `<span id="mq_disp_mo_${i}" style="color:#003087;font-weight:600">${Number(savedMo).toLocaleString()}</span>
-                       <input type="number" id="mq_mo_${i}" value="${savedMo}" style="${inputStyle};display:none" min="0" data-key="${kwKey}_mo">`
-                    : `<input type="number" id="mq_mo_${i}" placeholder="MO 마감쿼리" style="${inputStyle}" min="0" data-key="${kwKey}_mo">`)
-                : '<span style="color:#aaa">-</span>'}
-            </td>
-            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">
-              ${hasSaved ? `<button onclick="editMqRow(${i},'noncomp')" style="font-size:10px;padding:2px 7px;border:1px solid #cdd;border-radius:4px;background:#f8f9fb;cursor:pointer">수정</button>` : ''}
-            </td>
+            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">${info.negPc ? warn(pcSum) : '<span style="color:#aaa">-</span>'}</td>
+            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">${info.negMo ? warn(moSum) : '<span style="color:#aaa">-</span>'}</td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>`;
 
-  window._kwEntries = kwEntries;
+  window._kwEntries  = kwEntries;
   window._allNegRows = allNegRows;
+  window._prevSums   = prevSums;
   btn.disabled = false;
-}
-
-// 수정 버튼 클릭 시 입력칸 노출
-function editMqRow(i, type){
-  if(type==='comp'){
-    const disp = document.getElementById(`mq_disp_pcmo_${i}`);
-    const inp  = document.getElementById(`mq_pcmo_${i}`);
-    if(disp) disp.style.display='none';
-    if(inp)  inp.style.display='inline-block';
-  } else {
-    ['pc','mo'].forEach(d=>{
-      const disp = document.getElementById(`mq_disp_${d}_${i}`);
-      const inp  = document.getElementById(`mq_${d}_${i}`);
-      if(disp) disp.style.display='none';
-      if(inp)  inp.style.display='inline-block';
-    });
-  }
 }
 
 async function runNegFix(){
@@ -1042,6 +1022,7 @@ async function runNegFix(){
 
   const kwEntries  = window._kwEntries  || [];
   const allNegRows = window._allNegRows || [];
+  const prevSums   = window._prevSums   || {};
   if(!kwEntries.length){ alert('음수 키워드가 없습니다.'); return; }
 
   const loadEl = document.getElementById('fix-loading');
@@ -1050,34 +1031,21 @@ async function runNegFix(){
   const detEl  = document.getElementById('fix-result-detail');
   loadEl.classList.add('show'); resEl.style.display='none';
 
-  const mq = loadMqStore();
   let fixedCount = 0;
   const log = [];
 
-  // 키워드별로 처리 (중복 제거된 단위)
   for(let i=0; i<kwEntries.length; i++){
     const [kwKey, info] = kwEntries[i];
     const r = info.rep;
-
-    // 입력값 읽기 (입력칸 or 저장값)
-    const getPcVal   = ()=> parseFloat(document.getElementById(`mq_pc_${i}`)?.value||mq[kwKey+'_pc']||'0')||0;
-    const getMoVal   = ()=> parseFloat(document.getElementById(`mq_mo_${i}`)?.value||mq[kwKey+'_mo']||'0')||0;
-    const getPcmoVal = ()=> parseFloat(document.getElementById(`mq_pcmo_${i}`)?.value||mq[kwKey+'_pcmo']||'0')||0;
-
-    // 해당 키워드의 음수 날짜 목록
     const negDates = [...new Set(info.dates)].sort();
-
-    // API 조회 범위: 가장 이른 음수날짜 기준 전월1일 ~ 해당 음수날짜
     const firstDate = negDates[0];
     const bd = new Date(firstDate+'T00:00:00');
     const prevMonthStart = fmt(new Date(bd.getFullYear(), bd.getMonth()-1, 1));
-    // 끝날짜는 마지막 음수날짜
     const lastDate = negDates[negDates.length-1];
 
     if(r.isComp){
-      const mqVal = getPcmoVal();
-      if(!mqVal){ log.push(`⚠️ ${r.kw} PC+MO 마감쿼리 미입력 — 건너뜀`); continue; }
-      mq[kwKey+'_pcmo'] = mqVal;
+      const mqVal = prevSums[kwKey+'_pcmo'] || 0;
+      if(!mqVal){ log.push(`⚠️ ${r.kw} PC+MO 전월합산 데이터 없음 — 건너뜀`); continue; }
       txtEl.textContent = `API 조회: ${r.kw} PC+MO`;
       try{
         const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, '');
@@ -1100,10 +1068,9 @@ async function runNegFix(){
     } else {
       // PC
       if(info.negPc){
-        const mqPc = getPcVal();
-        if(!mqPc){ log.push(`⚠️ ${r.kw} PC 마감쿼리 미입력 — 건너뜀`); }
+        const mqPc = prevSums[kwKey+'_pc'] || 0;
+        if(!mqPc){ log.push(`⚠️ ${r.kw} PC 전월합산 데이터 없음 — 건너뜀`); }
         else {
-          mq[kwKey+'_pc'] = mqPc;
           txtEl.textContent = `API 조회: ${r.kw} PC`;
           try{
             const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, 'pc');
@@ -1125,10 +1092,9 @@ async function runNegFix(){
       }
       // MO
       if(info.negMo){
-        const mqMo = getMoVal();
-        if(!mqMo){ log.push(`⚠️ ${r.kw} MO 마감쿼리 미입력 — 건너뜀`); }
+        const mqMo = prevSums[kwKey+'_mo'] || 0;
+        if(!mqMo){ log.push(`⚠️ ${r.kw} MO 전월합산 데이터 없음 — 건너뜀`); }
         else {
-          mq[kwKey+'_mo'] = mqMo;
           txtEl.textContent = `API 조회: ${r.kw} MO`;
           try{
             const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, 'mo');
@@ -1150,9 +1116,6 @@ async function runNegFix(){
       }
     }
   }
-
-  // 입력된 마감쿼리값 저장
-  saveMqStore(mq);
 
   loadEl.classList.remove('show');
   resEl.style.display='block';
