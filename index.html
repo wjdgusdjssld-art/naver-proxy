@@ -932,8 +932,9 @@ function updateNegList(){
   // 키워드별 대표 row (첫번째) + 해당 키워드에 속한 날짜 목록
   const kwMap = {}; // { kwKey: { rep, dates } }
   allNegRows.forEach(r=>{
-    const kwKey = r.kwLower+'|'+(r.isComp?'comp':'noncomp');
-    if(!kwMap[kwKey]){ kwMap[kwKey]={ rep:r, dates:[], negPc:false, negMo:false, negPcmo:false }; }
+    const kwLower = (r.kwLower || r.kw || '').toLowerCase();
+    const kwKey = kwLower+'|'+(r.isComp?'comp':'noncomp');
+    if(!kwMap[kwKey]){ kwMap[kwKey]={ rep:r, kwLower, dates:[], negPc:false, negMo:false, negPcmo:false }; }
     kwMap[kwKey].dates.push(r.date);
     if(r.negPc)   kwMap[kwKey].negPc   = true;
     if(r.negMo)   kwMap[kwKey].negMo   = true;
@@ -1082,7 +1083,7 @@ async function runNegFix(){
         const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, '');
         const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b,0);
         const doneSet = new Set();
-        allNegRows.filter(row=>row.kwLower===r.kwLower&&row.isComp).forEach(row=>{
+        allNegRows.filter(row=>((row.kwLower||row.kw||'').toLowerCase()===(info.kwLower||r.kwLower||r.kw||'').toLowerCase())&&row.isComp).forEach(row=>{
           const dk = row.date;
           if(doneSet.has(dk)) return; doneSet.add(dk);
           const targetRatio = allRatios[row.date];
@@ -1108,7 +1109,7 @@ async function runNegFix(){
             const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, 'pc');
             const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b,0);
             const doneSetPc = new Set();
-            allNegRows.filter(row=>row.kwLower===r.kwLower&&!row.isComp&&row.negPc).forEach(row=>{
+            allNegRows.filter(row=>((row.kwLower||row.kw||'').toLowerCase()===(info.kwLower||r.kwLower||r.kw||'').toLowerCase())&&!row.isComp&&row.negPc).forEach(row=>{
               if(doneSetPc.has(row.date)) return; doneSetPc.add(row.date);
               const targetRatio = allRatios[row.date];
               if(targetRatio!==undefined && totalRatio>0){
@@ -1133,7 +1134,7 @@ async function runNegFix(){
             const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, lastDate, 'mo');
             const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b,0);
             const doneSetMo = new Set();
-            allNegRows.filter(row=>row.kwLower===r.kwLower&&!row.isComp&&row.negMo).forEach(row=>{
+            allNegRows.filter(row=>((row.kwLower||row.kw||'').toLowerCase()===(info.kwLower||r.kwLower||r.kw||'').toLowerCase())&&!row.isComp&&row.negMo).forEach(row=>{
               if(doneSetMo.has(row.date)) return; doneSetMo.add(row.date);
               const targetRatio = allRatios[row.date];
               if(targetRatio!==undefined && totalRatio>0){
