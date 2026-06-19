@@ -905,18 +905,22 @@ function loadApiKeys(){
   if(sec) document.getElementById('naverClientSecret').value = sec;
 }
 
-// 계산 완료 후 음수 목록 업데이트
+// 계산 완료 후 음수 목록 + 전월마감쿼리 입력 폼 표시
 function updateNegList(){
   const listEl = document.getElementById('fix-neg-list');
   const btn    = document.getElementById('btn-fix-run');
   if(!calcDates.length){ listEl.textContent='계산 먼저 실행해주세요.'; btn.disabled=true; return; }
 
-  // 음수 키워드 수집
-  const negItems = []; // { kw, grp, date, day }
+  // 음수 키워드 수집 (키워드+디바이스 단위로 중복 제거)
+  const negItems = [];
+  const seen = new Set();
   calcDates.forEach(dt=>{
     Object.values(calcResults[dt]||{}).forEach(rows=>{
       rows.forEach(r=>{
-        if(r.negPc || r.negMo || r.negPcmo) negItems.push(r);
+        if(r.negPc || r.negMo || r.negPcmo){
+          // 같은 키워드라도 날짜별로 각각 표시
+          negItems.push(r);
+        }
       });
     });
   });
@@ -926,13 +930,57 @@ function updateNegList(){
     btn.disabled = true; return;
   }
 
-  listEl.innerHTML = `<div style="margin-bottom:6px;color:#c0392b;font-weight:700">음수 키워드 ${negItems.length}개 발견</div>`
-    + negItems.map(r=>`<div style="padding:3px 0;border-bottom:1px solid #f0f0f4">
-        <span style="color:#003087;font-weight:600">${r.kw}</span>
-        <span style="color:#888;margin-left:6px">${r.grp} · ${r.date}(${r.day})</span>
-        ${r.isComp ? `<span style="color:#c0392b;margin-left:6px">PC+MO: ${r.pcmo1}</span>`
-          : `<span style="color:#c0392b;margin-left:6px">PC: ${r.pc1} / MO: ${r.mo1}</span>`}
-      </div>`).join('');
+  // 음수 키워드별 전월마감쿼리 입력 폼 생성
+  const inputStyle = 'width:90px;padding:4px 7px;border:1px solid #cdd5e0;border-radius:5px;font-size:11px;font-family:inherit;text-align:right';
+
+  listEl.innerHTML = `
+    <div style="margin-bottom:10px;color:#c0392b;font-weight:700">음수 키워드 ${negItems.length}개 발견 — 전월 마감 쿼리 입력 후 보정 실행</div>
+    <div style="font-size:10px;color:#888;margin-bottom:10px">※ 네이버 키워드도구에서 해당 키워드의 전월 마감 쿼리값(PC/MO 각각)을 입력해주세요.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead>
+        <tr style="background:#f0f4ff">
+          <th style="padding:6px 8px;text-align:left;border:1px solid #dde">키워드</th>
+          <th style="padding:6px 8px;text-align:left;border:1px solid #dde">그룹</th>
+          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">날짜</th>
+          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">음수값</th>
+          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">전월마감 PC쿼리</th>
+          <th style="padding:6px 8px;text-align:center;border:1px solid #dde">전월마감 MO쿼리</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${negItems.map((r,i)=>{
+          const negInfo = r.isComp
+            ? `<span style="color:#c0392b">PC+MO: ${r.pcmo1}</span>`
+            : `<span style="color:#c0392b">${r.negPc?'PC: '+r.pc1:''}${r.negPc&&r.negMo?' / ':''}${r.negMo?'MO: '+r.mo1:''}</span>`;
+          if(r.isComp){
+            return `<tr style="border-bottom:1px solid #f0f0f4">
+              <td style="padding:6px 8px;border:1px solid #eee;font-weight:600;color:#003087">${r.kw}</td>
+              <td style="padding:6px 8px;border:1px solid #eee;color:#888">${r.grp}</td>
+              <td style="padding:6px 8px;border:1px solid #eee;text-align:center">${r.date}(${r.day})</td>
+              <td style="padding:6px 8px;border:1px solid #eee;text-align:center">${negInfo}</td>
+              <td colspan="2" style="padding:6px 8px;border:1px solid #eee;text-align:center">
+                <input type="number" id="mq_pcmo_${i}" placeholder="PC+MO 마감쿼리" style="${inputStyle};width:140px" min="0">
+              </td>
+            </tr>`;
+          }
+          return `<tr style="border-bottom:1px solid #f0f0f4">
+            <td style="padding:6px 8px;border:1px solid #eee;font-weight:600;color:#003087">${r.kw}</td>
+            <td style="padding:6px 8px;border:1px solid #eee;color:#888">${r.grp}</td>
+            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">${r.date}(${r.day})</td>
+            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">${negInfo}</td>
+            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">
+              ${r.negPc ? `<input type="number" id="mq_pc_${i}" placeholder="PC 마감쿼리" style="${inputStyle}" min="0">` : '<span style="color:#aaa">-</span>'}
+            </td>
+            <td style="padding:6px 8px;border:1px solid #eee;text-align:center">
+              ${r.negMo ? `<input type="number" id="mq_mo_${i}" placeholder="MO 마감쿼리" style="${inputStyle}" min="0">` : '<span style="color:#aaa">-</span>'}
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+
+  // negItems를 전역에 저장해서 runNegFix에서 참조
+  window._negItems = negItems;
   btn.disabled = false;
 }
 
@@ -943,72 +991,83 @@ async function runNegFix(){
     alert('API 키를 먼저 저장해주세요.'); return;
   }
 
+  const negItems = window._negItems || [];
+  if(!negItems.length){ alert('음수 키워드가 없습니다.'); return; }
+
   const loadEl = document.getElementById('fix-loading');
   const txtEl  = document.getElementById('fix-loading-txt');
   const resEl  = document.getElementById('fix-result-area');
   const detEl  = document.getElementById('fix-result-detail');
   loadEl.classList.add('show'); resEl.style.display='none';
 
-  // 날짜별·그룹별 음수 키워드 수집
-  const negByDate = {}; // { date: [ {kw, grp, isComp} ] }
-  calcDates.forEach(dt=>{
-    Object.values(calcResults[dt]||{}).forEach(rows=>{
-      rows.forEach(r=>{
-        if(r.negPc || r.negMo || r.negPcmo){
-          if(!negByDate[dt]) negByDate[dt]=[];
-          negByDate[dt].push(r);
-        }
-      });
-    });
-  });
-
   let fixedCount = 0;
   const log = [];
 
-  for(const [date, negRows] of Object.entries(negByDate)){
-    // 파일날짜 = resultDate+1일
-    const bd = new Date(date+'T00:00:00');
-    const fileDate = fmt(new Date(bd.getFullYear(), bd.getMonth(), bd.getDate()+1));
-    const startDate = date; const endDate = date;
+  for(let i=0; i<negItems.length; i++){
+    const r = negItems[i];
+    const bd = new Date(r.date+'T00:00:00');
+    // 전월 1일 ~ 전일 (결과날짜 기준)
+    const prevMonthStart = fmt(new Date(bd.getFullYear(), bd.getMonth()-1, 1));
+    const prevDay = fmt(new Date(bd.getFullYear(), bd.getMonth(), bd.getDate()-1));
 
-    // 비경쟁사: PC / MO 각각
-    const nonCompRows = negRows.filter(r=>!r.isComp);
-    for(const r of nonCompRows){
-      // PC 음수이면 PC 조회
-      if(r.negPc){
-        txtEl.textContent = `API 조회: ${r.kw} PC (${date})`;
-        try{
-          const val = await fetchDatalab(clientId, clientSec, r.kw, startDate, endDate, 'pc');
-          if(val !== null){
-            r.pc1 = r2(val); r.negPc = false;
-            fixedCount++; log.push(`✅ ${r.kw} PC → ${r.pc1}`);
-          }
-        } catch(e){ log.push(`❌ ${r.kw} PC 실패: ${e.message}`); }
-      }
-      // MO 음수이면 MO 조회
-      if(r.negMo){
-        txtEl.textContent = `API 조회: ${r.kw} MO (${date})`;
-        try{
-          const val = await fetchDatalab(clientId, clientSec, r.kw, startDate, endDate, 'mo');
-          if(val !== null){
-            r.mo1 = r2(val); r.negMo = false;
-            fixedCount++; log.push(`✅ ${r.kw} MO → ${r.mo1}`);
-          }
-        } catch(e){ log.push(`❌ ${r.kw} MO 실패: ${e.message}`); }
-      }
-    }
-
-    // 경쟁사: PC+MO
-    const compRows = negRows.filter(r=>r.isComp);
-    for(const r of compRows){
-      txtEl.textContent = `API 조회: ${r.grp} PC+MO (${date})`;
+    if(r.isComp){
+      const mqPcmo = parseFloat(document.getElementById(`mq_pcmo_${i}`)?.value||'0');
+      if(!mqPcmo){ log.push(`⚠️ ${r.kw} PC+MO 마감쿼리 미입력 — 건너뜀`); continue; }
+      txtEl.textContent = `API 조회: ${r.kw} PC+MO (${r.date})`;
       try{
-        const val = await fetchDatalab(clientId, clientSec, r.grp.replace('경쟁사_',''), startDate, endDate, '');
-        if(val !== null){
-          r.pcmo1 = r2(val); r.negPcmo = false;
-          fixedCount++; log.push(`✅ ${r.grp} PC+MO → ${r.pcmo1}`);
+        const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, prevDay, '');
+        const targetRatio = allRatios[r.date];
+        const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b, 0);
+        if(targetRatio !== undefined && totalRatio > 0){
+          const val = r2(mqPcmo * targetRatio / totalRatio);
+          r.pcmo1 = val; r.negPcmo = false;
+          fixedCount++; log.push(`✅ ${r.kw} PC+MO → ${val} (비중: ${r2(targetRatio/totalRatio*100)}%)`);
+        } else {
+          log.push(`⚠️ ${r.kw} 해당일(${r.date}) 지수 없음`);
         }
-      } catch(e){ log.push(`❌ ${r.grp} 실패: ${e.message}`); }
+      } catch(e){ log.push(`❌ ${r.kw} PC+MO 실패: ${e.message}`); }
+
+    } else {
+      // PC 보정
+      if(r.negPc){
+        const mqPc = parseFloat(document.getElementById(`mq_pc_${i}`)?.value||'0');
+        if(!mqPc){ log.push(`⚠️ ${r.kw} PC 마감쿼리 미입력 — 건너뜀`); }
+        else {
+          txtEl.textContent = `API 조회: ${r.kw} PC (${r.date})`;
+          try{
+            const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, prevDay, 'pc');
+            const targetRatio = allRatios[r.date];
+            const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b, 0);
+            if(targetRatio !== undefined && totalRatio > 0){
+              const val = r2(mqPc * targetRatio / totalRatio);
+              r.pc1 = val; r.negPc = false;
+              fixedCount++; log.push(`✅ ${r.kw} PC → ${val} (비중: ${r2(targetRatio/totalRatio*100)}%)`);
+            } else {
+              log.push(`⚠️ ${r.kw} PC 해당일(${r.date}) 지수 없음`);
+            }
+          } catch(e){ log.push(`❌ ${r.kw} PC 실패: ${e.message}`); }
+        }
+      }
+      // MO 보정
+      if(r.negMo){
+        const mqMo = parseFloat(document.getElementById(`mq_mo_${i}`)?.value||'0');
+        if(!mqMo){ log.push(`⚠️ ${r.kw} MO 마감쿼리 미입력 — 건너뜀`); }
+        else {
+          txtEl.textContent = `API 조회: ${r.kw} MO (${r.date})`;
+          try{
+            const allRatios = await fetchDatalabAll(clientId, clientSec, r.kw, prevMonthStart, prevDay, 'mo');
+            const targetRatio = allRatios[r.date];
+            const totalRatio = Object.values(allRatios).reduce((a,b)=>a+b, 0);
+            if(targetRatio !== undefined && totalRatio > 0){
+              const val = r2(mqMo * targetRatio / totalRatio);
+              r.mo1 = val; r.negMo = false;
+              fixedCount++; log.push(`✅ ${r.kw} MO → ${val} (비중: ${r2(targetRatio/totalRatio*100)}%)`);
+            } else {
+              log.push(`⚠️ ${r.kw} MO 해당일(${r.date}) 지수 없음`);
+            }
+          } catch(e){ log.push(`❌ ${r.kw} MO 실패: ${e.message}`); }
+        }
+      }
     }
   }
 
@@ -1017,12 +1076,12 @@ async function runNegFix(){
   detEl.innerHTML = `<div style="margin-bottom:6px">보정 완료: <strong>${fixedCount}개</strong></div>`
     + log.map(l=>`<div style="padding:2px 0;font-size:10px">${l}</div>`).join('');
 
-  // 결과 화면 갱신
   if(fixedCount > 0) renderResults();
   updateNegList();
 }
 
-async function fetchDatalab(clientId, clientSec, kw, startDate, endDate, device){
+// 전체 날짜별 지수 반환 { "2026-06-17": 73.1, ... }
+async function fetchDatalabAll(clientId, clientSec, kw, startDate, endDate, device){
   const body = {
     startDate, endDate,
     timeUnit: 'date',
@@ -1043,9 +1102,9 @@ async function fetchDatalab(clientId, clientSec, kw, startDate, endDate, device)
 
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  // results[0].data[0].ratio = 해당 날짜 상대지수
-  const ratio = data?.results?.[0]?.data?.[0]?.ratio;
-  return ratio !== undefined ? ratio : null;
+  const result = {};
+  (data?.results?.[0]?.data || []).forEach(d=>{ result[d.period] = d.ratio; });
+  return result;
 }
 
 // ── 초기화 ─────────────────────────────────────────────────
