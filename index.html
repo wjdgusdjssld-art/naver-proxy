@@ -648,6 +648,8 @@ function runCalc(){
   setTimeout(()=>{
     try{
       const store=loadStore();
+      // liveStore: 루프 진행 중 계산된 1일치값을 실시간 반영 (금→토→일 누적 계산용)
+      const liveStore=JSON.parse(JSON.stringify(store));
 
       // 파일 내 각 row의 resultDate 기준으로 날짜별 그룹핑
       const filesByDate={}; // { "2026-06-18": [rows...] }
@@ -684,10 +686,10 @@ function runCalc(){
           }
         });
 
-        // 전29일 합산 (store에서)
+        // 전29일 합산 (liveStore에서 — 초기데이터 + 앞 날짜 계산된 1일치값 포함)
         const prev29Map={};
-        Object.entries(store).forEach(([sk,dates])=>{
-          if(sk.startsWith('__comp__'))return; // 경쟁사는 별도 처리
+        Object.entries(liveStore).forEach(([sk,dates])=>{
+          if(sk.startsWith('__comp__'))return;
           let pcSum=0,moSum=0,cnt=0;
           Object.entries(dates).forEach(([dt,val])=>{
             if(dt>=startDate&&dt<=endDate){pcSum+=val.pc||0;moSum+=val.mo||0;cnt++;}
@@ -695,12 +697,12 @@ function runCalc(){
           if(cnt>0)prev29Map[sk]={pc:pcSum,mo:moSum,cnt};
         });
         // 경쟁사 그룹별 전29일 합산
-        const prev29CompMap={}; // { '경쟁사_삼성': pcmo합산, ... }
+        const prev29CompMap={};
         COMP_GROUPS.forEach(grp=>{
           const sk=`__comp__${grp}`;
-          if(store[sk]){
+          if(liveStore[sk]){
             let sum=0;
-            Object.entries(store[sk]).forEach(([dt,val])=>{
+            Object.entries(liveStore[sk]).forEach(([dt,val])=>{
               if(dt>=startDate&&dt<=endDate)sum+=val.pcmo||0;
             });
             prev29CompMap[grp]=sum;
@@ -752,30 +754,40 @@ function runCalc(){
           if(!calcResults[baseDate][g].length)delete calcResults[baseDate][g];
         });
 
-        // store에 저장 — 30일 누적값 그대로 저장 (fileDate 키)
-        // prev29 계산은 루프 시작 전 고정된 store 스냅샷(line 650)을 사용하므로
-        // 이 저장이 같은 루프 내 다른 날짜 계산에 영향을 주지 않음
-        const fileDateKey = filesByDate[baseDate][0]?.fileDate || baseDate;
+        // store에 저장 — 계산된 1일치값(pc1/mo1)을 resultDate(baseDate) 키로 저장
+        // liveStore에도 동시 반영 → 다음 날짜 prev29 계산에 즉시 사용
         const saveSnap=loadStore();
         Object.entries(todayMap).forEach(([sk,today])=>{
+          const grpRows=calcResults[baseDate][today.grp]||[];
+          const row=grpRows.find(r=>r.kw.toLowerCase()===today.kwLower);
+          const pc1val=row?row.pc1:r2(today.pc-(prev29Map[sk]?.pc||0));
+          const mo1val=row?row.mo1:r2(today.mo-(prev29Map[sk]?.mo||0));
+          // localStorage 저장
           if(!saveSnap[sk])saveSnap[sk]={};
-          saveSnap[sk][fileDateKey]={pc:today.pc,mo:today.mo,type:'pc_mo'};
+          saveSnap[sk][baseDate]={pc:pc1val,mo:mo1val,type:'pc_mo'};
           const dts=Object.keys(saveSnap[sk]).sort();
           if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete saveSnap[sk][d]);
+          // liveStore 반영 (다음 날짜 prev29용)
+          if(!liveStore[sk])liveStore[sk]={};
+          liveStore[sk][baseDate]={pc:pc1val,mo:mo1val,type:'pc_mo'};
         });
         if(Object.keys(compTodayMap).length>0){
           COMP_GROUPS.forEach(grp=>{
             if(compTodayMap[grp]){
               const sk=`__comp__${grp}`;
+              const compRows=calcResults[baseDate][grp]||[];
+              const pcmo1val=compRows[0]?compRows[0].pcmo1:r2(compTodayMap[grp]-(prev29CompMap[grp]||0));
               if(!saveSnap[sk])saveSnap[sk]={};
-              saveSnap[sk][fileDateKey]={pcmo:compTodayMap[grp],type:'pcmo'};
+              saveSnap[sk][baseDate]={pcmo:pcmo1val,type:'pcmo'};
               const dts=Object.keys(saveSnap[sk]).sort();
               if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete saveSnap[sk][d]);
+              if(!liveStore[sk])liveStore[sk]={};
+              liveStore[sk][baseDate]={pcmo:pcmo1val,type:'pcmo'};
             }
           });
         }
         saveStore(saveSnap);
-        dbg(`[저장] 파일날짜=${fileDateKey}, 결과날짜=${baseDate} 완료`);
+        dbg(`[저장] resultDate=${baseDate}, 1일치값으로 저장 완료`);
 
         setP(Math.round((di+1)/calcDates.length*90));
       });
