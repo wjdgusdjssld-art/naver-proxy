@@ -792,6 +792,8 @@ function runCalc(){
         // ※ store(초기 데이터)와 성격이 같은 1일치 값 — 오염 없이 누적 가능
         // ─────────────────────────────────────────────────────────────
         Object.entries(todayMap).forEach(([sk,today])=>{
+          // store에 이미 baseDate 데이터 있으면 liveCalc에 저장 안 함 (중복 방지)
+          if(store[sk]&&store[sk][baseDate]) return;
           const grpRows=calcResults[baseDate][today.grp]||[];
           const row=grpRows.find(r=>r.kw.toLowerCase()===today.kwLower);
           const pc1val=row?row.pc1:r2(today.pc-(prev29Map[sk]?.pc||0));
@@ -799,17 +801,11 @@ function runCalc(){
           if(!liveCalc[sk])liveCalc[sk]={};
           liveCalc[sk][baseDate]={pc:pc1val,mo:mo1val};
         });
-        COMP_GROUPS.forEach(grp=>{
-          if(compTodayMap[grp]){
-            const sk=`__comp__${grp}`;
-            const compRows=calcResults[baseDate][grp]||[];
-            const pcmo1val=compRows[0]?compRows[0].pcmo1:r2(compTodayMap[grp]-(prev29CompMap[grp]||0));
-            if(!liveCalc[sk])liveCalc[sk]={};
-            liveCalc[sk][baseDate]={pcmo:pcmo1val};
-          }
-        });
+        // 경쟁사는 liveCalc에 저장하지 않음
+        // → 경쟁사 prev29는 초기파일(store)에서만 합산
+        // → 연속 날짜 계산 시 이전 날짜 경쟁사 1일치가 prev29에 누적되면 오차 발생
 
-        // localStorage 저장 — liveCalc에 이미 계산된 1일치값 사용
+        // localStorage 저장 — 일반 키워드: liveCalc의 1일치, 경쟁사: 직접 계산
         const saveSnap=loadStore();
         Object.entries(todayMap).forEach(([sk])=>{
           const lc=liveCalc[sk]?.[baseDate];
@@ -820,11 +816,12 @@ function runCalc(){
           if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete saveSnap[sk][d]);
         });
         COMP_GROUPS.forEach(grp=>{
+          const compRows=calcResults[baseDate][grp]||[];
+          if(!compRows.length)return;
           const sk=`__comp__${grp}`;
-          const lc=liveCalc[sk]?.[baseDate];
-          if(!lc)return;
+          const pcmo1val=compRows[0].pcmo1;
           if(!saveSnap[sk])saveSnap[sk]={};
-          saveSnap[sk][baseDate]={pcmo:lc.pcmo,type:'pcmo'};
+          saveSnap[sk][baseDate]={pcmo:pcmo1val,type:'pcmo'};
           const dts=Object.keys(saveSnap[sk]).sort();
           if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete saveSnap[sk][d]);
         });
