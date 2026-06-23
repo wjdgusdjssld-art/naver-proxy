@@ -250,10 +250,8 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
     </div>
       </div>
     </div>
-    <div style="margin-top:16px">
-      <button class="btn btn-primary" id="btn-next1" disabled onclick="goStep(2)" style="width:100%;padding:12px;font-size:14px">계산 실행 →</button>
+      <button class="btn btn-primary" id="btn-next1" disabled onclick="goStep(2)">계산 실행 →</button>
     </div>
-  </div>
   </div>
 
   <!-- STEP 2 -->
@@ -311,17 +309,7 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
       <div id="fix-result-detail" style="font-size:11px;color:#555"></div>
     </div>
 
-    <div class="tips" style="margin-bottom:12px">
-      <strong>⚠️ CORS 안내:</strong> 브라우저 보안 정책으로 API 직접 호출이 막힐 수 있습니다.<br>
-      막힐 경우: 크롬 확장 <strong>CORS Unblock</strong> 설치 후 활성화하거나,<br>
-      CMD에서 <code style="background:#fff3cd;padding:1px 4px;border-radius:3px">chrome.exe --disable-web-security --user-data-dir=C:\temp</code> 실행 후 해당 HTML 열어주세요.
-    </div>
-
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn btn-secondary" onclick="goStep(2)">← 계산 결과</button>
-      <button class="btn btn-primary" onclick="goStep(4)">다운로드 →</button>
-    </div>
-  </div>
+    
 
   <!-- STEP 4 -->
   <div class="panel" id="p4">
