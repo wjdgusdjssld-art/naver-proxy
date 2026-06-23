@@ -248,8 +248,7 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
 
       </div>
     </div>
-      </div>
-    </div>
+    <div style="margin-top:12px">
       <button class="btn btn-primary" id="btn-next1" disabled onclick="goStep(2)">계산 실행 →</button>
     </div>
   </div>
@@ -308,8 +307,11 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
       <div style="font-size:11px;font-weight:700;color:#00a86b;margin-bottom:8px">✅ 보정 완료</div>
       <div id="fix-result-detail" style="font-size:11px;color:#555"></div>
     </div>
-
-    
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="goStep(2)">← 계산 결과</button>
+      <button class="btn btn-primary" onclick="goStep(4)">다운로드 →</button>
+    </div>
+  </div>
 
   <!-- STEP 4 -->
   <div class="panel" id="p4">
