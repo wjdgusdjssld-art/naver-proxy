@@ -118,7 +118,7 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
         <div class="drop-area" id="drop-today" onclick="document.getElementById('f-today').click()">
           <div class="drop-icon">📂</div>
           <p><strong>클릭</strong>하거나 <strong>드래그</strong><br>
-          <span style="font-size:10px;color:#aaa">파일명: 20260619_DB손해보험_브랜드(결과파일).xls 형식 · 그룹별 6개 동시 업로드</span></p>
+          <span style="font-size:10px;color:#aaa">파일명: 20260623_DB손해보험_브랜드(결과파일).xls 형식 · 그룹별 6개 동시 업로드 · 파일 내 여러 수집기간 자동 처리</span></p>
           <input type="file" id="f-today" accept=".xls,.xlsx" multiple onchange="handleTodayFiles(this.files)">
         </div>
         <div class="file-list" id="fl-today"></div>
@@ -141,9 +141,9 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
       </div>
       <div class="tips">
         <strong>초기 데이터 파일 구조 (아래 칼럼 순서 그대로 업로드):</strong><br>
-        섹션1 (A~F열): <strong>업종 · 키워드 · 일별 · 요일 · PC · MO</strong> → DB손보 / DB손보_전사 / 업종K<br>
+        섹션1 (A~F열): <strong>업종 · 키워드 · 일별 · 요일 · PC · MO</strong> → DB손보 / DB손보_전사<br>
         섹션2 (H~L열): <strong>업종 · 키워드 · 일별 · 요일 · PC+MO</strong> → 경쟁사 (KB손보/삼성화재/현대해상)<br>
-        섹션3 (N~S열): <strong>업종 · 키워드 · 일별 · 요일 · PC · MO</strong> → 업종K 추가<br>
+        섹션3 (N~S열): <strong>업종 · 키워드 · 일별 · 요일 · PC · MO</strong> → 자동차보험 / 이륜차보험<br>
         <span style="color:#c0392b">※ 칼럼 순서가 다르면 데이터가 잘못 저장됩니다. 반드시 위 순서를 지켜주세요.</span>
       </div>
     </div>
@@ -153,93 +153,58 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
       <div style="line-height:1.9;font-size:12px;color:#333">
 
         <div style="background:#003087;color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px">
-          <div style="font-size:14px;font-weight:700;margin-bottom:4px">📋 DB손해보험 키워드 1일치 계산기 사용 설명서</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">📋 DB손해보험 키워드 1일 쿼리 계산기 사용 설명서</div>
           <div style="font-size:11px;opacity:0.8">별도 프로그램 설치 불필요 · 크롬 브라우저에서 바로 실행</div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">🔰 처음 사용 시 (최초 1회)</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">1</span>
-          <strong>📦 초기 데이터 로드 탭</strong>으로 이동</div>
-          <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">2</span>
-          아래 칼럼 순서의 통합 엑셀 파일 업로드<br>
-          <span style="font-size:11px;color:#888;margin-left:24px">섹션1: 업종/키워드/일별/요일/PC/MO · 섹션2: 업종/키워드/일별/요일/PC+MO · 섹션3: 업종/키워드/일별/요일/PC/MO</span></div>
-          <div style="margin-bottom:4px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">3</span>
-          "✅ N개 데이터 저장 완료" 메시지 확인 → 이후부터는 이 단계 불필요</div>
-          <div style="font-size:11px;color:#888;margin-top:8px;padding-top:8px;border-top:1px solid #eee">
-          ※ 초기 데이터는 <strong>같은 크롬, 같은 PC</strong>에서 최초 1회만 업로드하면 됩니다.<br>
-          ※ 이후 매일 트렌드K 파일만 업로드하면 계산기가 자동으로 데이터를 누적 저장합니다.<br>
-          ※ 다른 PC나 다른 브라우저에서 시작할 때만 초기 데이터 재업로드가 필요합니다.
+          <div style="margin-bottom:8px">① <strong>초기 데이터 로드 탭</strong>으로 이동 → 통합 엑셀 파일 업로드</div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px;padding:8px;background:#f8f9fb;border-radius:6px">
+          섹션1 (A~F열): 업종·키워드·일별·요일·PC·MO → DB손보/DB손보_전사<br>
+          섹션2 (H~L열): 업종·키워드·일별·요일·PC+MO → 경쟁사(KB손보/삼성화재/현대해상)<br>
+          섹션3 (N~S열): 업종·키워드·일별·요일·PC·MO → 자동차보험/이륜차보험
           </div>
+          <div>② "✅ N개 데이터 저장 완료" 확인 → 이후 이 단계 불필요</div>
+          <div style="font-size:11px;color:#888;margin-top:8px">※ 같은 크롬·같은 PC에서 최초 1회만. 다른 PC/시크릿창 시작 시 재업로드 필요.</div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📅 매일 작업 순서</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">1</span>
-          오늘 날짜의 트렌드K 파일 준비<br>
-          <span style="font-size:11px;color:#888;margin-left:24px">파일명 형식 반드시 지킬 것: <strong>20260619_DB손해보험_브랜드.xls</strong></span></div>
-          <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">2</span>
-          <strong>📅 트렌드K 파일 업로드 탭</strong>에서 파일 업로드 (모든 파일 한꺼번에)</div>
-          <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">3</span>
-          감지된 날짜 확인 후 <strong>계산 실행 →</strong> 클릭</div>
-          <div><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">4</span>
-          결과 확인 후 <strong>다운로드</strong></div>
-          <div style="font-size:11px;color:#888;margin-top:8px;padding-top:8px;border-top:1px solid #eee">
-          ※ 결과 날짜는 파일명 날짜 -1일로 표시됩니다 (전일 쿼리 기준)<br>
-          예) 파일명 20260619 → 결과 날짜 2026-06-18
-          </div>
+          <div style="margin-bottom:6px">① 트렌드K 파일 6개(그룹별) 동시 업로드 → ② 계산 실행 (음수 자동 보정) → ③ 다운로드</div>
+          <div style="margin-bottom:6px;color:#e67e22;font-weight:700">④ 누적 날짜 계산 시 → 다운로드 화면에서 🔄 보정 후 재계산 클릭 → 최종값 확정</div>
+          <div style="font-size:11px;color:#888">※ 수집기간 날짜 = 결과날짜 (예: 수집기간 20260622 → 결과날짜 2026-06-22)</div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📅 월요일 작업 (금/토/일 누락분)</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <div style="margin-bottom:6px">금/토/일 3일치 트렌드K 파일을 <strong>한꺼번에</strong> 업로드하면 날짜별로 각각 1일치가 계산됩니다.</div>
-          <div style="background:#f8f9fb;border-radius:6px;padding:8px 12px;font-size:11px;color:#555">
-          <strong>예시:</strong><br>
-          20260620_DB손해보험_브랜드.xls (금)<br>
-          20260621_DB손해보험_브랜드.xls (토)<br>
-          20260622_DB손해보험_브랜드.xls (일)<br>
-          → 세 파일 동시 업로드 → 2026-06-19/20/21 결과 3일치 한번에 출력
-          </div>
+          금/토/일 데이터가 포함된 트렌드K 파일 6개를 한꺼번에 업로드하면 날짜별 자동 계산됩니다.<br>
+          <div style="font-size:11px;color:#888;margin-top:6px">※ 계산 후 반드시 🔄 보정 후 재계산으로 최종값 확정</div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📊 계산 방식</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <div style="font-size:12px">
-          <strong>1일치 = 오늘 파일 최근30일 누적 − 전29일 합산</strong><br><br>
-          <span style="color:#888">전29일 합산 기간: 결과날짜 기준 최근 29일 (브라우저에 저장된 누적 데이터 활용)</span><br><br>
+          <strong>1일치 = 수집기간 당일 최근30일 누적 − 전29일 1일 쿼리 합산</strong><br><br>
           <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <tr style="background:#f0f4ff"><th style="padding:6px 10px;text-align:left;border:1px solid #dde">그룹</th><th style="padding:6px 10px;border:1px solid #dde">계산 방식</th></tr>
+            <tr style="background:#f0f4ff"><th style="padding:6px 10px;border:1px solid #dde;text-align:left">그룹</th><th style="padding:6px 10px;border:1px solid #dde;text-align:center">계산 방식</th></tr>
             <tr><td style="padding:6px 10px;border:1px solid #dde">DB손보 / DB손보_전사 / 자동차보험 / 이륜차보험</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC / MO 분리</td></tr>
-            <tr style="background:#f8f9fb"><td style="padding:6px 10px;border:1px solid #dde">경쟁사_삼성 / 경쟁사_현대 / 경쟁사_KB</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC+MO 통합 (3사 각각 별도 집계)</td></tr>
+            <tr style="background:#f8f9fb"><td style="padding:6px 10px;border:1px solid #dde">경쟁사_KB / 경쟁사_삼성 / 경쟁사_현대</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC+MO 통합</td></tr>
           </table>
+        </div>
+
+        <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">⚠️ 음수 보정</div>
+        <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
+          계산 결과 음수 발생 시 네이버 데이터랩 API를 통해 자동 보정합니다.<br>
+          <div style="font-size:11px;color:#888;margin-top:6px">
+          • API 키 등록 시 계산 실행과 동시에 자동 보정<br>
+          • 데이터랩 조회값 0 → 결과값 0으로 출력<br>
+          • 보정 실패 건은 Step3 음수 보정 탭에서 수동 재보정 가능<br>
+          • API 키는 음수 보정 탭에서 저장 (브라우저에 1회만 입력)
           </div>
         </div>
 
-        <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">⚠️ 주의사항</div>
-        <div style="background:#fffbe6;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:11px;color:#7d5a00;margin-bottom:14px">
-          • 파일명 앞 8자리가 날짜로 인식됩니다. 파일명 형식을 반드시 지켜주세요.<br>
-          • <strong>같은 크롬, 같은 PC</strong>에서만 저장 데이터가 유지됩니다. 다른 환경에서는 초기 로드 필요.<br>
-          • 저장 데이터 초기화 시 초기 데이터부터 다시 로드해야 합니다.<br>
-          • 기준 키워드 목록에 없는 키워드는 자동으로 제외됩니다.<br>
-          • 초기 데이터 파일의 칼럼 순서가 맞지 않으면 데이터가 잘못 저장됩니다.
-        </div>
-
-        <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">🔧 음수 보정 방법</div>
-        <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;font-size:11px;margin-bottom:14px">
-          <div style="margin-bottom:8px">계산 결과에서 음수값이 나오면 <strong>Step 3 음수 보정</strong> 단계에서 자동 보정합니다.</div>
-          <div style="background:#f0f4ff;border-radius:6px;padding:10px 12px;margin-bottom:8px;line-height:1.9">
-            <strong>보정 계산 방식:</strong><br>
-            ① 음수 키워드의 <strong>전월 1일~말일</strong> 쿼리 합산 (초기 데이터에서 자동 계산)<br>
-            ② 초기 데이터에서 <strong>전월 1일 ~ 결과날짜 전일</strong>까지 일별 합산 (분모)<br>
-            ③ 초기 데이터에서 <strong>결과날짜</strong> 당일 쿼리값 (분자)<br>
-            ④ 보정값 = 전월합산 × (당일값 ÷ 전월1일~전일 합산)<br>
-          </div>
-          <div style="font-size:11px;color:#888">
-            ※ 별도 API 키 없이 초기 데이터만으로 자동 계산됩니다.<br>
-            ※ 초기 데이터에 해당 날짜 데이터가 없는 경우 "데이터 없음"으로 표시됩니다.
-          </div>
-        </div>
-
+      </div>
+    </div>
       </div>
     </div>
       <button class="btn btn-primary" id="btn-next1" disabled onclick="goStep(2)">계산 실행 →</button>
@@ -1244,7 +1209,8 @@ async function runNegFix(){
             row.negPcmo = false; fixedCount++;
             log.push(`✅ ${r.kw} PC+MO (${row.date}) → ${row.pcmo1} (비중: ${r2(numerator/denominator*100)}%)`);
           } else {
-            log.push(`⚠️ ${r.kw} PC+MO (${row.date}) 지수 없음 (분모=${r2(denominator)}, 분자=${numerator})`);
+            row.pcmo1=0; row.negPcmo=false;
+            log.push(`⚠️ ${r.kw} PC+MO (${row.date}) 지수 없음 → 0 처리`);
           }
         });
       } catch(e){ log.push(`❌ ${r.kw} PC+MO 실패: ${e.message}`); }
@@ -1270,7 +1236,8 @@ async function runNegFix(){
                 row.negPc = false; fixedCount++;
                 log.push(`✅ ${r.kw} PC (${row.date}) → ${row.pc1} (비중: ${r2(numerator/denominator*100)}%)`);
               } else {
-                log.push(`⚠️ ${r.kw} PC (${row.date}) 지수 없음 (분모=${r2(denominator)}, 분자=${numerator})`);
+                row.pc1=0; row.negPc=false;
+                log.push(`⚠️ ${r.kw} PC (${row.date}) 지수 없음 → 0 처리`);
               }
             });
           } catch(e){ log.push(`❌ ${r.kw} PC 실패: ${e.message}`); }
@@ -1296,7 +1263,8 @@ async function runNegFix(){
                 row.negMo = false; fixedCount++;
                 log.push(`✅ ${r.kw} MO (${row.date}) → ${row.mo1} (비중: ${r2(numerator/denominator*100)}%)`);
               } else {
-                log.push(`⚠️ ${r.kw} MO (${row.date}) 지수 없음 (분모=${r2(denominator)}, 분자=${numerator})`);
+                row.mo1=0; row.negMo=false;
+                log.push(`⚠️ ${r.kw} MO (${row.date}) 지수 없음 → 0 처리`);
               }
             });
           } catch(e){ log.push(`❌ ${r.kw} MO 실패: ${e.message}`); }
