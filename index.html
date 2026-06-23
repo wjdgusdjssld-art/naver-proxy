@@ -113,12 +113,12 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
       <div style="margin-bottom:8px">
         <div style="font-size:11px;font-weight:700;color:#003087;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #003087">
           트렌드K 파일 <span class="badge" id="cnt-today">0</span>
-          <span style="font-weight:400;color:#888;font-size:10px;margin-left:8px">1개 파일로 여러 날짜 데이터 자동 처리 (월요일: 금/토/일 데이터 포함된 파일 1개 업로드)</span>
+          <span style="font-weight:400;color:#888;font-size:10px;margin-left:8px">그룹별 파일 동시 업로드 가능 (월요일: 금/토/일 데이터 포함된 파일들 한꺼번에)</span>
         </div>
         <div class="drop-area" id="drop-today" onclick="document.getElementById('f-today').click()">
           <div class="drop-icon">📂</div>
           <p><strong>클릭</strong>하거나 <strong>드래그</strong><br>
-          <span style="font-size:10px;color:#aaa">파일명: 20260619_DB손해보험_브랜드.xls 형식 · 수집기간 컬럼 기준 날짜 자동 인식</span></p>
+          <span style="font-size:10px;color:#aaa">파일명: 20260619_DB손해보험_브랜드(결과파일).xls 형식 · 그룹별 6개 동시 업로드</span></p>
           <input type="file" id="f-today" accept=".xls,.xlsx" onchange="handleTodayFiles(this.files)">
         </div>
         <div class="file-list" id="fl-today"></div>
@@ -192,13 +192,13 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📅 월요일 작업 (금/토/일 누락분)</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <div style="margin-bottom:6px">금/토/일 3일치 데이터가 포함된 트렌드K 파일 <strong>1개</strong>를 업로드하면 날짜별로 각각 1일치가 계산됩니다.</div>
+          <div style="margin-bottom:6px">금/토/일 3일치 트렌드K 파일을 <strong>한꺼번에</strong> 업로드하면 날짜별로 각각 1일치가 계산됩니다.</div>
           <div style="background:#f8f9fb;border-radius:6px;padding:8px 12px;font-size:11px;color:#555">
           <strong>예시:</strong><br>
           20260620_DB손해보험_브랜드.xls (금)<br>
           20260621_DB손해보험_브랜드.xls (토)<br>
           20260622_DB손해보험_브랜드.xls (일)<br>
-          → 파일 1개 업로드 → 2026-06-19/20/21 결과 3일치 한번에 출력
+          → 세 파일 동시 업로드 → 2026-06-19/20/21 결과 3일치 한번에 출력
           </div>
         </div>
 
@@ -402,14 +402,7 @@ function switchTab(e,id){
 }
 
 // ══════════════════════════════════════════════════════════
-// 수집기간(YYYYMMDD) → 결과날짜 (수집기간 -1일)
-// ══════════════════════════════════════════════════════════
-function collectDateToResultDate(collectDate){
-  if(!collectDate||collectDate.length<8) return null;
-  const y=collectDate.slice(0,4), mo=collectDate.slice(4,6), d=collectDate.slice(6,8);
-  const dt = new Date(`${y}-${mo}-${d}T00:00:00`);
-  return fmt(new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()-1));
-}
+// 파일명에서 날짜 추출: 20260619_... → "2026-06-19"
 
 // ══════════════════════════════════════════════════════════
 // 트렌드K 파일 파싱 (raw:false → 날짜 문자열, 숫자 문자열)
@@ -516,24 +509,23 @@ function parseInitFile(wb){
 const todayFiles=[];
 
 function handleTodayFiles(fl){
-  // 단일 파일 처리 (fl[0]만 사용)
-  const file = fl[0]; if(!file) return;
-  const id='tc-'+Date.now()+Math.random().toString(36).slice(2,5);
-  addChip('today', file.name, id, null);
-  readXLS(file, wb=>{
-    const rows = parseTrendK(wb);
-    // 수집기간 컬럼에서 고유 날짜 추출 → resultDate 목록
-    const collectDates=[...new Set(rows.map(r=>r.collectDate).filter(Boolean))].sort();
-    const resultDates=collectDates.map(collectDateToResultDate).filter(Boolean);
-    // 파일 객체에 rows 저장 (resultDate는 row별로 계산)
-    todayFiles.length=0; // 기존 파일 제거 후 단일 파일로 대체
-    todayFiles.push({id, name:file.name, rows, collectDates, resultDates});
-    const dateLabel=resultDates.length>0?` · ${resultDates.join(', ')}`:'';
-    updateChipLabel(id, rows.length+'개'+dateLabel);
-    dbg(`[파일] ${file.name}: ${rows.length}개, 수집기간=${collectDates.join(',')}, 결과날짜=${resultDates.join(',')}`);
-    updateDetectedDates();
-    updateNextBtn();
-  },err=>{updateChipLabel(id,'오류');dbg('[오류] '+err);});
+  Array.from(fl).forEach(file=>{
+    const id='tc-'+Date.now()+Math.random().toString(36).slice(2,5);
+    addChip('today', file.name, id, null);
+    readXLS(file, wb=>{
+      const rows = parseTrendK(wb);
+      // 수집기간 컬럼에서 고유 날짜들 추출 → resultDate 목록
+      const collectDates=[...new Set(rows.map(r=>r.collectDate).filter(Boolean))].sort();
+      const resultDates=collectDates.map(collectDateToResultDate).filter(Boolean);
+      const resultDate=resultDates[0]||null; // 대표값 (단일 날짜 파일용)
+      todayFiles.push({id, name:file.name, rows, collectDates, resultDates, resultDate});
+      const dateLabel=resultDates.length>0?` · ${resultDates.join(', ')}`:'';
+      updateChipLabel(id, rows.length+'개'+dateLabel);
+      dbg(`[파일] ${file.name}: ${rows.length}개, 수집기간=${collectDates.join(',')}, 결과날짜=${resultDates.join(',')}`);
+      updateDetectedDates();
+      updateNextBtn();
+    },err=>{updateChipLabel(id,'오류');dbg('[오류] '+err);});
+  });
 }
 function handleInitFile(file){
   if(!file) return;
@@ -665,7 +657,7 @@ function runCalc(){
         const startDate=fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-29));
         dbg(`\n[${baseDate}(${dayKr})] 전29일: ${startDate}~${endDate}`);
 
-        // 오늘 row 합산 (filesByDate[baseDate]는 이미 row 배열)
+        // 오늘 row 합산 (filesByDate[baseDate]는 row 배열)
         const todayMap={};
         const compTodayMap={}; // { '경쟁사_삼성': pcmo합산, ... }
         filesByDate[baseDate].forEach(r=>{
@@ -744,7 +736,7 @@ function runCalc(){
           if(!calcResults[baseDate][g].length)delete calcResults[baseDate][g];
         });
 
-        // store에 저장 (수집기간 날짜 = collectDate 기준, YYYYMMDD → YYYY-MM-DD 형식으로 변환)
+        // store에 저장 (수집기간 날짜 기준, YYYYMMDD → YYYY-MM-DD)
         const rawCollect = filesByDate[baseDate][0]?.collectDate || '';
         const fileDateKey = rawCollect.length>=8
           ? `${rawCollect.slice(0,4)}-${rawCollect.slice(4,6)}-${rawCollect.slice(6,8)}`
