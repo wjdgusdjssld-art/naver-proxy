@@ -480,7 +480,7 @@ function parseInitFile(wb){
       if(kw in KW_REF){
         const sk=storeKey(kw,KW_REF[kw]);
         if(!store[sk])store[sk]={};
-        store[sk][dt1]={pc:toNum(row[4]),mo:toNum(row[5]),type:'pc_mo'}; count++;
+        store[sk][dt1]={pc1:toNum(row[4]),mo1:toNum(row[5]),type:'pc_mo'}; count++;
       }
     }
     // 섹션2: 업종(7)/키워드(8)/일별(9)/요일(10)/PC+MO(11)
@@ -501,14 +501,14 @@ function parseInitFile(wb){
       if(kw3 in KW_REF){
         const sk=storeKey(kw3,KW_REF[kw3]);
         if(!store[sk])store[sk]={};
-        store[sk][dt3]={pc:toNum(row[17]),mo:toNum(row[18]),type:'pc_mo'}; count++;
+        store[sk][dt3]={pc1:toNum(row[17]),mo1:toNum(row[18]),type:'pc_mo'}; count++;
       }
     }
   }
   // 경쟁사 그룹별 날짜별 합산 저장
   Object.entries(compByDate).forEach(([sk,dateMap])=>{
     if(!store[sk])store[sk]={};
-    Object.entries(dateMap).forEach(([dt,pcmo])=>{store[sk][dt]={pcmo,type:'pcmo'};});
+    Object.entries(dateMap).forEach(([dt,pcmo])=>{store[sk][dt]={pcmo1:pcmo,type:'pcmo'};});
   });
   saveStore(store); return count;
 }
