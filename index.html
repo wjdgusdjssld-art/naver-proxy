@@ -122,6 +122,14 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
           <input type="file" id="f-today" accept=".xls,.xlsx" multiple onchange="handleTodayFiles(this.files)">
         </div>
         <div class="file-list" id="fl-today"></div>
+        <div style="margin-top:6px;display:flex;gap:6px">
+          <button onclick="clearTodayFiles()" style="font-size:11px;padding:4px 10px;background:#f0f2f5;border:1px solid #dde;border-radius:5px;cursor:pointer;color:#666">🗑️ 전체 삭제</button>
+        </div>
+      </div>
+      <!-- 재계산 안내 -->
+      <div style="margin-top:10px;padding:10px 14px;background:#fff3e0;border:1px solid #e67e22;border-radius:8px;font-size:11px">
+        <span style="color:#e67e22;font-weight:700">⚠️ 2일치 이상 계산 시 필수:</span>
+        계산 완료 후 다운로드 화면에서 <strong>🔄 보정 후 재계산</strong>을 반드시 실행해야 정확한 결과를 얻을 수 있습니다.
       </div>
       <!-- 감지된 날짜 표시 -->
       <div id="detected-dates" style="display:none;margin-top:10px;padding:10px 14px;background:#f0fff8;border:1px solid #b3e6cc;border-radius:8px;font-size:11px">
@@ -138,6 +146,13 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
           <input type="file" id="f-init" accept=".xlsx,.xls" onchange="handleInitFile(this.files[0])">
         </div>
         <div id="init-status" style="margin-top:8px;font-size:11px;color:#888"></div>
+      </div>
+      <div class="tips" style="margin-bottom:10px;background:#e8f4fd;border-color:#3498db">
+        <strong>📌 처음 사용하시는 분께</strong><br>
+        초기 데이터는 <strong>최근 30일 기준의 키워드별 일자별 1일 쿼리</strong>가 담긴 엑셀 파일입니다.<br>
+        이 데이터가 있어야 오늘의 1일 쿼리를 정확하게 계산할 수 있습니다.<br>
+        아래 버튼으로 양식 파일을 다운로드하여 데이터를 채운 후 업로드하세요.<br><br>
+        <button onclick="downloadTemplate()" style="background:#3498db;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700">📥 초기 데이터 양식 다운로드</button>
       </div>
       <div class="tips">
         <strong>초기 데이터 파일 구조 (아래 칼럼 순서 그대로 업로드):</strong><br>
@@ -172,8 +187,8 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📅 매일 작업 순서</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
           <div style="margin-bottom:6px">① 트렌드K 파일 6개(그룹별) 동시 업로드 → ② 계산 실행 (음수 자동 보정) → ③ 다운로드</div>
-          <div style="margin-bottom:6px;color:#e67e22;font-weight:700">④ 누적 날짜 계산 시 → 다운로드 화면에서 🔄 보정 후 재계산 클릭 → 최종값 확정</div>
-          <div style="font-size:11px;color:#888">※ 수집기간 날짜 = 결과날짜 (예: 수집기간 20260622 → 결과날짜 2026-06-22)</div>
+          <div style="margin-bottom:6px;padding:6px 10px;background:#fff3e0;border:1px solid #e67e22;border-radius:5px;color:#e67e22;font-weight:700">⚠️ 2일치 이상 계산 시 필수: 다운로드 후 🔄 보정 후 재계산 클릭 → 최종값 확정</div>
+          <div style="font-size:11px;color:#888">※ 결과날짜 = 수집기간 -1일 (예: 수집기간 20260622 → 결과날짜 2026-06-21)</div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📅 월요일 작업 (금/토/일 누락분)</div>
@@ -182,11 +197,39 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
           <div style="font-size:11px;color:#888;margin-top:6px">※ 계산 후 반드시 🔄 보정 후 재계산으로 최종값 확정</div>
         </div>
 
-        <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📊 계산 방식</div>
+        <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📊 계산 방식 상세</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <strong>1일치 = 수집기간 당일 최근30일 누적 − 전29일 1일 쿼리 합산</strong><br><br>
+
+          <div style="font-weight:700;color:#003087;margin-bottom:6px">① 1차 계산 (1일 쿼리)</div>
+          <div style="background:#f8f9fb;border-radius:6px;padding:10px 12px;font-size:11px;margin-bottom:10px">
+            <strong>1일 쿼리 = 수집기간 당일 트렌드K 최근30일 누적값 − 전29일 1일 쿼리 합산</strong><br><br>
+            예시) 6/21 db다이렉트 PC (수집기간 20260622 → 결과날짜 6/21):<br>
+            · 트렌드K 수집기간 20260622 PC 30일값 = 19,100<br>
+            · 전29일(5/24~6/21) 1일 쿼리 합산 = 18,420<br>
+            · <strong>6/22 PC 1일 쿼리 = 19,100 − 18,420 = 680</strong>
+          </div>
+
+          <div style="font-weight:700;color:#c0392b;margin-bottom:6px">② 음수값 발생 시 보정 계산</div>
+          <div style="background:#fff8f0;border-radius:6px;padding:10px 12px;font-size:11px;margin-bottom:10px">
+            <strong>보정값 = 전월 마감 쿼리 × (당일 데이터랩 지수 ÷ 전월 데이터랩 지수 합산)</strong><br><br>
+            예시) 6/22 db다이렉트자동차보험 PC 음수 발생:<br>
+            · 전월(5월) 마감 쿼리 합산 = 3,200 (5/1~5/31 1일 쿼리 합산)<br>
+            · 데이터랩 5월 지수 합산 = 87.5<br>
+            · 데이터랩 6/22 지수 = 3.2<br>
+            · <strong>보정값 = 3,200 × (3.2 ÷ 87.5) = 117.0</strong>
+          </div>
+
+          <div style="font-weight:700;color:#e67e22;margin-bottom:6px">③ 누적 날짜 계산 시 🔄 보정 후 재계산 필수</div>
+          <div style="background:#fff3e0;border-radius:6px;padding:10px 12px;font-size:11px;margin-bottom:10px">
+            2일치 이상 계산 시 1차 계산의 보정값이 다음 날짜 전29일 합산에 반영되지 않습니다.<br>
+            다운로드 후 <strong>🔄 보정 후 재계산</strong>을 실행하면 보정값이 누적에 반영되어 최종 정확한 값이 산출됩니다.
+          </div>
+
           <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <tr style="background:#f0f4ff"><th style="padding:6px 10px;border:1px solid #dde;text-align:left">그룹</th><th style="padding:6px 10px;border:1px solid #dde;text-align:center">계산 방식</th></tr>
+            <tr style="background:#f0f4ff">
+              <th style="padding:6px 10px;border:1px solid #dde;text-align:left">그룹</th>
+              <th style="padding:6px 10px;border:1px solid #dde;text-align:center">계산 방식</th>
+            </tr>
             <tr><td style="padding:6px 10px;border:1px solid #dde">DB손보 / DB손보_전사 / 자동차보험 / 이륜차보험</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC / MO 분리</td></tr>
             <tr style="background:#f8f9fb"><td style="padding:6px 10px;border:1px solid #dde">경쟁사_KB / 경쟁사_삼성 / 경쟁사_현대</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC+MO 통합</td></tr>
           </table>
@@ -207,8 +250,10 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
     </div>
       </div>
     </div>
-      <button class="btn btn-primary" id="btn-next1" disabled onclick="goStep(2)">계산 실행 →</button>
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" id="btn-next1" disabled onclick="goStep(2)" style="width:100%;padding:12px;font-size:14px">계산 실행 →</button>
     </div>
+  </div>
   </div>
 
   <!-- STEP 2 -->
@@ -371,6 +416,27 @@ function reCalc(){
   // 2차 계산 완료 후 알림을 위한 플래그
   window._isReCalc = true;
   goStep(2);
+}
+
+function downloadTemplate(){
+  const wb = XLSX.utils.book_new();
+  // 섹션1: DB손보/전사/자동차보험/이륜차보험
+  const s1_headers = [['업종','키워드','일별','요일','PC','MO','','업종','키워드','일별','요일','PC+MO','','업종','키워드','일별','요일','PC','MO']];
+  const s1_example = [
+    ['DB손보','db다이렉트','2026-05-01','목',673,1439,'','경쟁사','kb손보','2026-05-01','목',3123,'','자동차보험','다이렉트자동차보험','2026-05-01','목',335,440],
+    ['DB손보','db다이렉트','2026-05-02','금',442,676,'','경쟁사','kb손보','2026-05-02','금',3130,'','자동차보험','다이렉트자동차보험','2026-05-02','금',290,374],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet([...s1_headers, ...s1_example]);
+  XLSX.utils.book_append_sheet(wb, ws, '초기데이터양식');
+  XLSX.writeFile(wb, '초기데이터_양식.xlsx');
+}
+
+function clearTodayFiles(){
+  todayFiles.length=0;
+  document.getElementById('fl-today').innerHTML='';
+  document.getElementById('detected-dates').style.display='none';
+  updateNextBtn();
+  dbg('[파일] 전체 삭제 완료');
 }
 
 function clearStorage(){
