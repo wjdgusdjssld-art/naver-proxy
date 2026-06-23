@@ -405,11 +405,10 @@ function switchTab(e,id){
 // 수집기간(YYYYMMDD) → 결과날짜 (수집기간 -1일)
 // ══════════════════════════════════════════════════════════
 function collectDateToResultDate(collectDate){
-  // 수집기간(YYYYMMDD) → 결과날짜 (수집기간 -1일)
+  // 수집기간(YYYYMMDD) → 결과날짜 (수집기간 당일)
   if(!collectDate || collectDate.length < 8) return null;
   const y=collectDate.slice(0,4), mo=collectDate.slice(4,6), d=collectDate.slice(6,8);
-  const dt = new Date(`${y}-${mo}-${d}T00:00:00`);
-  return fmt(new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()-1));
+  return `${y}-${mo}-${d}`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -519,7 +518,7 @@ const todayFiles=[];
 function handleTodayFiles(fl){
   Array.from(fl).forEach(file=>{
     const id='tc-'+Date.now()+Math.random().toString(36).slice(2,5);
-    addChip('today', file.name, id, null);
+    addChip('today', file.name, id);
     readXLS(file, wb=>{
       const rows = parseTrendK(wb);
       // 수집기간 컬럼에서 고유 날짜들 추출
@@ -557,10 +556,10 @@ function readXLS(file,onSuccess,onError){
   reader.onerror=()=>onError('파일 읽기 실패');
   reader.readAsArrayBuffer(file);
 }
-function addChip(slot,name,id,fileDate){
+function addChip(slot,name,id){
   const fl=document.getElementById('fl-'+slot);
   const d=document.createElement('div'); d.className='fc'; d.id=id;
-  const dateBadge=fileDate?`<span class="date-badge">${fileDate}</span>`:'';
+  const dateBadge='';
   d.innerHTML=`<span>⏳</span>${dateBadge}<span class="fc-name" title="${name}">${name}</span><span class="fc-lbl" style="color:#888;font-size:10px;background:#e8f0e8;padding:1px 5px;border-radius:3px;white-space:nowrap"></span><span class="fc-del" onclick="removeFile('${slot}','${id}')">×</span>`;
   fl.appendChild(d);
   document.getElementById('cnt-today').textContent=todayFiles.length+1;
@@ -640,22 +639,21 @@ function runCalc(){
 
   setTimeout(async ()=>{
     try{
-      // ── 수집기간 기준으로 그룹핑 (30일값은 수집기간 당일 파일에서 읽어야 함)
-      // filesByCollect = { "20260622": [row,...] }  ← 수집기간 키
-      const filesByCollect={};
+      // ── row의 수집기간 기준으로 결과날짜별 그룹핑 ──
+      const filesByDate={}; // { "2026-06-18": [row,...] }
       todayFiles.forEach(f=>{
         f.rows.forEach(r=>{
-          const cd = r.collectDate||'';
-          if(!cd) return;
-          if(!filesByCollect[cd]) filesByCollect[cd]=[];
-          filesByCollect[cd].push(r);
+          const resultDate=collectDateToResultDate(r.collectDate);
+          const dt=resultDate||'unknown';
+          if(!filesByDate[dt]) filesByDate[dt]=[];
+          filesByDate[dt].push(r);
         });
       });
 
-      // 수집기간 오름차순 정렬 → 결과날짜도 오름차순
-      const collectDates = Object.keys(filesByCollect).sort();
-      // 결과날짜 목록 (수집기간 -1일)
-      calcDates = collectDates.map(cd=>collectDateToResultDate(cd)).filter(Boolean);
+      calcDates=Object.keys(filesByDate).filter(d=>d!=='unknown').sort();
+      if(filesByDate['unknown']){
+        dbg(`[경고] 날짜 미인식 행: ${filesByDate['unknown'].length}개`);
+      }
       dbg(`계산 날짜: ${calcDates.join(', ')}`);
       calcResults={};
 
@@ -663,25 +661,23 @@ function runCalc(){
       const clientSec = localStorage.getItem('naver_api_sec');
       const hasApi = !!(clientId && clientSec);
 
-      // ── 수집기간별 순차 처리 ──
-      for(let di=0; di<collectDates.length; di++){
-        const collectDate = collectDates[di];           // ex) "20260622"
-        const baseDate    = calcDates[di];              // ex) "2026-06-21" (결과날짜)
-        const bd = new Date(baseDate+'T00:00:00');
-        const dayKr = DAY_KR[bd.getDay()];
-
-        // 전29일 범위 (결과날짜 기준)
-        const endDate   = fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-1));
-        const startDate = fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-29));
-        dbg(`\n[${baseDate}(${dayKr})] 수집기간=${collectDate}, 전29일: ${startDate}~${endDate}`);
+      // ── 날짜별 순차 처리 (오름차순) ──
+      for(let di=0; di<calcDates.length; di++){
+        const baseDate=calcDates[di];
+        const bd=new Date(baseDate+'T00:00:00');
+        const dayKr=DAY_KR[bd.getDay()];
+        // 전29일 범위 (store에서 1일 쿼리값 합산용)
+        const endDate  =fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-1));
+        const startDate=fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-29));
+        dbg(`\n[${baseDate}(${dayKr})] 전29일 합산범위: ${startDate}~${endDate}`);
 
         // store 로드 (이전 날짜 1일 쿼리값이 쌓인 최신 상태)
-        const store = loadStore();
+        const store=loadStore();
 
-        // ── 오늘 row 합산 (수집기간 당일 파일의 30일값) ──
+        // ── 오늘 row 합산 (트렌드K 30일 누적값) ──
         const todayMap={};
         const compTodayMap={};
-        filesByCollect[collectDate].forEach(r=>{
+        filesByDate[baseDate].forEach(r=>{
           if(COMP_GROUPS.has(r.grp)){
             compTodayMap[r.grp]=(compTodayMap[r.grp]||0)+r.pc+r.mo;
           } else {
@@ -689,7 +685,8 @@ function runCalc(){
           }
         });
 
-        // ── 전29일 1일 쿼리값 합산 (store에서, 결과날짜 기준) ──
+        // ── 전29일 1일 쿼리값 합산 (store에서) ──
+        // store에는 계산된 1일 쿼리값(pc1, mo1)이 저장됨
         const prev29Map={};
         Object.entries(store).forEach(([sk,dates])=>{
           if(sk.startsWith('__comp__')) return;
@@ -714,7 +711,7 @@ function runCalc(){
         });
         dbg(`전29일 키워드: ${Object.keys(prev29Map).length}개`);
 
-        // ── 1일치 계산: 수집기간 당일 30일값 - 전29일 1일쿼리 합산 ──
+        // ── 1일치 계산: 트렌드K 30일값 - 전29일 1일쿼리 합산 ──
         calcResults[baseDate]={};
         GROUP_ORDER.forEach(g=>{calcResults[baseDate][g]=[];});
 
@@ -741,7 +738,7 @@ function runCalc(){
             if(!calcResults[baseDate][grp]) calcResults[baseDate][grp]=[];
             calcResults[baseDate][grp].push({
               kw:grp+' 전체', kwLower:grp.toLowerCase(), grp, date:baseDate, day:dayKr,
-              collectDate:collectDate,
+              collectDate:baseDate.replace(/-/g,''),
               pc1:null, mo1:null, pcmo1,
               pc_t:null, mo_t:null, pc_y:null, mo_y:null,
               pcmo_t:todayPcmo, pcmo_y:prev29Pcmo,
@@ -766,9 +763,10 @@ function runCalc(){
           dbg(`[${baseDate}] 음수 ${negRows.length}건 → API 키 없어 보정 건너뜀`);
         }
 
-        // ── store 저장: 결과날짜 키로 1일 쿼리값(pc1, mo1) 저장 ──
+        // ── store 저장: 계산된 1일 쿼리값(pc1, mo1) 저장 ──
+        // 재계산 시에도 덮어쓰기로 최신값 반영
         const newStore=loadStore();
-        Object.entries(todayMap).forEach(([sk,today])=>{
+                Object.entries(todayMap).forEach(([sk,today])=>{
           if(!newStore[sk]) newStore[sk]={};
           const resultRow=Object.values(calcResults[baseDate])
             .flat().find(r=>storeKey(r.kwLower,r.grp)===sk);
@@ -793,9 +791,10 @@ function runCalc(){
         });
 
         saveStore(newStore);
-        dbg(`[저장] 수집기간=${collectDate}, 결과날짜=${baseDate} 완료`);
-        setP(Math.round((di+1)/collectDates.length*90));
+        dbg(`[저장] 결과날짜=${baseDate} 완료`);
+        setP(Math.round((di+1)/calcDates.length*90));
       }
+      // ── 순차 처리 완료 ──
 
       updateStoreInfo();
       setP(100);
@@ -810,7 +809,6 @@ function runCalc(){
     }
   },100);
 }
-
 
 // ── 특정 날짜 음수 자동 보정 (runCalc 내부에서 날짜별 호출) ──
 async function autoFixNegForDate(baseDate, negRows, clientId, clientSec){
