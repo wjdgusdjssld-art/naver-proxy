@@ -97,7 +97,7 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
   <!-- STEP 1 -->
   <div class="panel active" id="p1">
     <div class="panel-title">데이터 준비</div>
-    <div class="panel-desc">트렌드K 파일을 업로드하세요. 파일 내 수집기간(D열) 기준으로 날짜를 자동 인식합니다. 주말/휴일 미업로드 분은 1개 파일에 누적해서 업로드하세요.</div>
+    <div class="panel-desc">트렌드K 파일을 업로드하세요. 파일 내 '수집기간' 컬럼 날짜 -1일을 기준으로 자동 인식합니다.</div>
     <div class="sbar">
       <span class="sl">저장 데이터</span>
       <span class="sv" id="storageInfo">확인 중...</span>
@@ -113,13 +113,13 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
       <div style="margin-bottom:8px">
         <div style="font-size:11px;font-weight:700;color:#003087;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #003087">
           트렌드K 파일 <span class="badge" id="cnt-today">0</span>
-          <span style="font-weight:400;color:#888;font-size:10px;margin-left:8px">여러 날짜 파일 동시 업로드 가능 (월요일: 금/토/일 파일 한꺼번에)</span>
+          <span style="font-weight:400;color:#888;font-size:10px;margin-left:8px">1개 파일로 여러 날짜 데이터 자동 처리 (월요일: 금/토/일 데이터 포함된 파일 1개 업로드)</span>
         </div>
         <div class="drop-area" id="drop-today" onclick="document.getElementById('f-today').click()">
           <div class="drop-icon">📂</div>
           <p><strong>클릭</strong>하거나 <strong>드래그</strong><br>
-          <span style="font-size:10px;color:#aaa">평일: 당일 파일 1개 · 주말/휴일 누락분: 여러 날짜 누적된 1개 파일로 업로드</span></p>
-          <input type="file" id="f-today" accept=".xls,.xlsx" multiple onchange="handleTodayFiles(this.files)">
+          <span style="font-size:10px;color:#aaa">파일명: 20260619_DB손해보험_브랜드.xls 형식 · 수집기간 컬럼 기준 날짜 자동 인식</span></p>
+          <input type="file" id="f-today" accept=".xls,.xlsx" onchange="handleTodayFiles(this.files)">
         </div>
         <div class="file-list" id="fl-today"></div>
       </div>
@@ -177,7 +177,7 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
           <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">1</span>
           오늘 날짜의 트렌드K 파일 준비<br>
-          <span style="font-size:11px;color:#888;margin-left:24px">파일 내 C열(그룹), D열(수집기간)이 정상적으로 채워져 있어야 합니다</span></div>
+          <span style="font-size:11px;color:#888;margin-left:24px">파일명 형식 반드시 지킬 것: <strong>20260619_DB손해보험_브랜드.xls</strong></span></div>
           <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">2</span>
           <strong>📅 트렌드K 파일 업로드 탭</strong>에서 파일 업로드 (모든 파일 한꺼번에)</div>
           <div style="margin-bottom:8px"><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">3</span>
@@ -185,17 +185,19 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
           <div><span style="background:#003087;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:6px">4</span>
           결과 확인 후 <strong>다운로드</strong></div>
           <div style="font-size:11px;color:#888;margin-top:8px;padding-top:8px;border-top:1px solid #eee">
-          ※ 결과 날짜는 수집기간(D열) 날짜 -1일로 표시됩니다 (전일 쿼리 기준)<br>
+          ※ 결과 날짜는 파일 내 수집기간 -1일로 표시됩니다 (전일 쿼리 기준)<br>
           예) 수집기간 20260619 → 결과 날짜 2026-06-18
           </div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">📅 월요일 작업 (금/토/일 누락분)</div>
         <div style="background:#fff;border:1px solid #dde2ea;border-radius:8px;padding:12px 16px;margin-bottom:14px">
-          <div style="margin-bottom:6px">금/토/일 3일치 데이터를 <strong>1개의 파일에 누적</strong>하여 업로드하면 수집기간(D열) 기준으로 날짜별로 각각 1일치가 자동 계산됩니다.</div>
+          <div style="margin-bottom:6px">금/토/일 3일치 데이터가 포함된 트렌드K 파일 <strong>1개</strong>를 업로드하면 날짜별로 각각 1일치가 계산됩니다.</div>
           <div style="background:#f8f9fb;border-radius:6px;padding:8px 12px;font-size:11px;color:#555">
           <strong>예시:</strong><br>
-          1개 파일 내에 수집기간 20260620 / 20260621 / 20260622 행이 각각 존재<br>
+          20260620_DB손해보험_브랜드.xls (금)<br>
+          20260621_DB손해보험_브랜드.xls (토)<br>
+          20260622_DB손해보험_브랜드.xls (일)<br>
           → 파일 1개 업로드 → 2026-06-19/20/21 결과 3일치 한번에 출력
           </div>
         </div>
@@ -208,15 +210,14 @@ td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
           <table style="width:100%;border-collapse:collapse;font-size:11px">
             <tr style="background:#f0f4ff"><th style="padding:6px 10px;text-align:left;border:1px solid #dde">그룹</th><th style="padding:6px 10px;border:1px solid #dde">계산 방식</th></tr>
             <tr><td style="padding:6px 10px;border:1px solid #dde">DB손보 / DB손보_전사 / 업종_자동차 / 업종_이륜차</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC / MO 분리</td></tr>
-            <tr style="background:#f8f9fb"><td style="padding:6px 10px;border:1px solid #dde">경쟁사_삼성화재 / 경쟁사_현대해상 / 경쟁사_kb손보</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC+MO 통합 (3사 각각 별도 집계)</td></tr>
+            <tr style="background:#f8f9fb"><td style="padding:6px 10px;border:1px solid #dde">경쟁사_삼성 / 경쟁사_현대 / 경쟁사_KB</td><td style="padding:6px 10px;border:1px solid #dde;text-align:center">PC+MO 통합 (3사 각각 별도 집계)</td></tr>
           </table>
           </div>
         </div>
 
         <div style="font-weight:700;color:#003087;font-size:13px;margin-bottom:8px;border-bottom:2px solid #003087;padding-bottom:4px">⚠️ 주의사항</div>
         <div style="background:#fffbe6;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:11px;color:#7d5a00;margin-bottom:14px">
-          • 파일 내 D열(수집기간) 날짜가 날짜 인식 기준입니다. 수집기간이 비어있는 행은 제외됩니다.<br>
-          • 파일 내 C열(그룹)은 기준 키워드 목록과 대조하여 자동으로 그룹을 분류합니다.<br>
+          • 수집기간 컬럼(D열)의 날짜 -1일이 결과 날짜로 사용됩니다. 파일 내 여러 날짜가 있으면 날짜별로 각각 계산됩니다.<br>
           • <strong>같은 크롬, 같은 PC</strong>에서만 저장 데이터가 유지됩니다. 다른 환경에서는 초기 로드 필요.<br>
           • 저장 데이터 초기화 시 초기 데이터부터 다시 로드해야 합니다.<br>
           • 기준 키워드 목록에 없는 키워드는 자동으로 제외됩니다.<br>
@@ -335,33 +336,33 @@ const KW_REF = {
   'db자동차보험':'DB손보','동부다이렉트자동차보험':'DB손보','동부자동차보험':'DB손보',
   '동부화재다이렉트':'DB손보','동부화재자동차보험':'DB손보','디비다이렉트':'DB손보','디비자동차보험':'DB손보',
   'db손해보험':'DB손보_전사','동부화재':'DB손보_전사','디비손해보험':'DB손보_전사',
-  // 경쟁사_삼성화재
-  '삼성다이렉트':'경쟁사_삼성화재','삼성다이렉트보험':'경쟁사_삼성화재','삼성다이렉트자동차보험':'경쟁사_삼성화재',
-  '삼성애니카':'경쟁사_삼성화재','삼성애니카다이렉트':'경쟁사_삼성화재','삼성자동차다이렉트':'경쟁사_삼성화재',
-  '삼성화재다이렉트':'경쟁사_삼성화재','삼성화재다이렉트자동차보험':'경쟁사_삼성화재','삼성화재자동차보험':'경쟁사_삼성화재','애니카다이렉트':'경쟁사_삼성화재',
-  // 경쟁사_현대해상
-  '하이카다이렉트':'경쟁사_현대해상','현대다이렉트자동차보험':'경쟁사_현대해상','현대자동차다이렉트':'경쟁사_현대해상','현대자동차보험':'경쟁사_현대해상',
-  '현대하이카':'경쟁사_현대해상','현대하이카다이렉트':'경쟁사_현대해상','현대해상다이렉트':'경쟁사_현대해상',
-  '현대해상다이렉트자동차보험':'경쟁사_현대해상','현대해상자동차보험':'경쟁사_현대해상','현대해상하이카':'경쟁사_현대해상',
-  // 경쟁사_kb손보
-  'kb다이렉트':'경쟁사_kb손보','kb다이렉트보험':'경쟁사_kb손보','kb다이렉트자동차보험':'경쟁사_kb손보','kb매직카':'경쟁사_kb손보',
-  'kb손해보험다이렉트':'경쟁사_kb손보','kb손해보험자동차보험':'경쟁사_kb손보','kb자동차':'경쟁사_kb손보',
-  'kb자동차다이렉트':'경쟁사_kb손보','kb자동차보험':'경쟁사_kb손보','kb자동차보험마일리지':'경쟁사_kb손보',
+  // 경쟁사_삼성
+  '삼성다이렉트':'경쟁사_삼성','삼성다이렉트보험':'경쟁사_삼성','삼성다이렉트자동차보험':'경쟁사_삼성',
+  '삼성애니카':'경쟁사_삼성','삼성애니카다이렉트':'경쟁사_삼성','삼성자동차다이렉트':'경쟁사_삼성',
+  '삼성화재다이렉트':'경쟁사_삼성','삼성화재다이렉트자동차보험':'경쟁사_삼성','삼성화재자동차보험':'경쟁사_삼성','애니카다이렉트':'경쟁사_삼성',
+  // 경쟁사_현대
+  '하이카다이렉트':'경쟁사_현대','현대다이렉트자동차보험':'경쟁사_현대','현대자동차다이렉트':'경쟁사_현대','현대자동차보험':'경쟁사_현대',
+  '현대하이카':'경쟁사_현대','현대하이카다이렉트':'경쟁사_현대','현대해상다이렉트':'경쟁사_현대',
+  '현대해상다이렉트자동차보험':'경쟁사_현대','현대해상자동차보험':'경쟁사_현대','현대해상하이카':'경쟁사_현대',
+  // 경쟁사_KB
+  'kb다이렉트':'경쟁사_KB','kb다이렉트보험':'경쟁사_KB','kb다이렉트자동차보험':'경쟁사_KB','kb매직카':'경쟁사_KB',
+  'kb손해보험다이렉트':'경쟁사_KB','kb손해보험자동차보험':'경쟁사_KB','kb자동차':'경쟁사_KB',
+  'kb자동차다이렉트':'경쟁사_KB','kb자동차보험':'경쟁사_KB','kb자동차보험마일리지':'경쟁사_KB',
   // 업종
   '다이렉트자동차보험':'업종_자동차','자동차다이렉트보험':'업종_자동차','자동차보험':'업종_자동차',
   '자동차보험다이렉트':'업종_자동차','자동차보험료비교견적사이트':'업종_자동차',
   '오토바이보험':'업종_이륜차','이륜차다이렉트보험':'업종_이륜차','이륜차보험':'업종_이륜차',
 };
 // 경쟁사 그룹들: PC+MO 통합 계산
-const COMP_GROUPS = new Set(['경쟁사_삼성화재','경쟁사_현대해상','경쟁사_kb손보']);
+const COMP_GROUPS = new Set(['경쟁사_삼성','경쟁사_현대','경쟁사_KB']);
 // 초기파일 섹션2 통합키 → 그룹 매핑
-const INIT_COMP_MAP = {'kb손보':'경쟁사_kb손보','삼성화재':'경쟁사_삼성화재','현대해상':'경쟁사_현대해상'};
-const GROUP_ORDER = ['DB손보','DB손보_전사','경쟁사_삼성화재','경쟁사_현대해상','경쟁사_kb손보','업종_자동차','업종_이륜차'];
+const INIT_COMP_MAP = {'kb손보':'경쟁사_KB','삼성화재':'경쟁사_삼성','현대해상':'경쟁사_현대'};
+const GROUP_ORDER = ['DB손보','DB손보_전사','경쟁사_삼성','경쟁사_현대','경쟁사_KB','업종_자동차','업종_이륜차'];
 
 // ══════════════════════════════════════════════════════════
 // 저장소
 // ══════════════════════════════════════════════════════════
-const LS_KEY = 'db_kw_store_v13';
+const LS_KEY = 'db_kw_store_v11';
 function loadStore(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'{}')}catch{return{}} }
 function saveStore(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)) }
 function storeKey(kw,grp){ return kw.toLowerCase().trim()+'|'+grp }
@@ -401,23 +402,17 @@ function switchTab(e,id){
 }
 
 // ══════════════════════════════════════════════════════════
-// 수집기간 문자열 → YYYY-MM-DD 파싱
-// 지원 형식: "20260619", "2026-06-19", "2026.06.19", "2026/06/19"
+// 수집기간(YYYYMMDD) → 결과날짜 (수집기간 -1일)
 // ══════════════════════════════════════════════════════════
-function parseCollectDate(v){
-  const s=String(v||'').trim();
-  if(!s) return null;
-  const m1=s.match(/^(\d{4})(\d{2})(\d{2})/);
-  if(m1) return `${m1[1]}-${m1[2]}-${m1[3]}`;
-  const m2=s.match(/^(\d{4})[-./](\d{2})[-./](\d{2})/);
-  if(m2) return `${m2[1]}-${m2[2]}-${m2[3]}`;
-  return null;
+function collectDateToResultDate(collectDate){
+  if(!collectDate||collectDate.length<8) return null;
+  const y=collectDate.slice(0,4), mo=collectDate.slice(4,6), d=collectDate.slice(6,8);
+  const dt = new Date(`${y}-${mo}-${d}T00:00:00`);
+  return fmt(new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()-1));
 }
 
 // ══════════════════════════════════════════════════════════
 // 트렌드K 파일 파싱 (raw:false → 날짜 문자열, 숫자 문자열)
-// 수집기간(D열)에서 파일날짜 추출, 결과날짜 = 파일날짜 -1일
-// 1개 파일에 여러 날짜 누적된 경우도 처리
 // ══════════════════════════════════════════════════════════
 function parseTrendK(wb){
   const ws=wb.Sheets[wb.SheetNames[0]]; if(!ws) return [];
@@ -442,13 +437,9 @@ function parseTrendK(wb){
     const kwLower=kwRaw.toLowerCase();
     if(!(kwLower in KW_REF)) continue;
     const grp=KW_REF[kwLower];
-    const collectDateRaw=String(r[dateI]||'').trim();
-    const fileDate=parseCollectDate(collectDateRaw);
-    if(!fileDate) continue;
-    const bd=new Date(fileDate+'T00:00:00');
-    const resultDate=fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-1));
+    const collectDate=String(r[dateI]||'').trim();
     const pc=toNum(r[pcI]), mo=toNum(r[moI]);
-    rows.push({kw:kwRaw,kwLower,grp,collectDate:collectDateRaw,fileDate,resultDate,pc,mo});
+    rows.push({kw:kwRaw,kwLower,grp,collectDate,pc,mo});
   }
   return rows;
 }
@@ -525,24 +516,24 @@ function parseInitFile(wb){
 const todayFiles=[];
 
 function handleTodayFiles(fl){
-  Array.from(fl).forEach(file=>{
-    const id='tc-'+Date.now()+Math.random().toString(36).slice(2,5);
-    addChip('today', file.name, id, null);
-    readXLS(file, wb=>{
-      const rows = parseTrendK(wb);
-      // 파일 내 날짜들 추출 (수집기간 기준)
-      const fileDates=[...new Set(rows.map(r=>r.fileDate).filter(Boolean))].sort();
-      const resultDates=[...new Set(rows.map(r=>r.resultDate).filter(Boolean))].sort();
-      const fileDate=fileDates[fileDates.length-1]||null; // 대표 파일날짜 (최신)
-      const resultDate=resultDates[resultDates.length-1]||null; // 대표 결과날짜
-      todayFiles.push({id, name:file.name, rows, fileDate, resultDate, fileDates, resultDates});
-      const dateLabel=resultDates.length>1?`${resultDates[0]}~${resultDates[resultDates.length-1]}`:(resultDate||'날짜미인식');
-      updateChipLabel(id, rows.length+'개 · '+dateLabel);
-      dbg(`[파일] ${file.name}: ${rows.length}개, 파일날짜=${fileDates.join(',')}, 결과날짜=${resultDates.join(',')}`);
-      updateDetectedDates();
-      updateNextBtn();
-    },err=>{updateChipLabel(id,'오류');dbg('[오류] '+err);});
-  });
+  // 단일 파일 처리 (fl[0]만 사용)
+  const file = fl[0]; if(!file) return;
+  const id='tc-'+Date.now()+Math.random().toString(36).slice(2,5);
+  addChip('today', file.name, id, null);
+  readXLS(file, wb=>{
+    const rows = parseTrendK(wb);
+    // 수집기간 컬럼에서 고유 날짜 추출 → resultDate 목록
+    const collectDates=[...new Set(rows.map(r=>r.collectDate).filter(Boolean))].sort();
+    const resultDates=collectDates.map(collectDateToResultDate).filter(Boolean);
+    // 파일 객체에 rows 저장 (resultDate는 row별로 계산)
+    todayFiles.length=0; // 기존 파일 제거 후 단일 파일로 대체
+    todayFiles.push({id, name:file.name, rows, collectDates, resultDates});
+    const dateLabel=resultDates.length>0?` · ${resultDates.join(', ')}`:'';
+    updateChipLabel(id, rows.length+'개'+dateLabel);
+    dbg(`[파일] ${file.name}: ${rows.length}개, 수집기간=${collectDates.join(',')}, 결과날짜=${resultDates.join(',')}`);
+    updateDetectedDates();
+    updateNextBtn();
+  },err=>{updateChipLabel(id,'오류');dbg('[오류] '+err);});
 }
 function handleInitFile(file){
   if(!file) return;
@@ -585,7 +576,7 @@ function removeFile(slot,id){
   updateDetectedDates(); updateNextBtn();
 }
 function updateDetectedDates(){
-  const dates=[...new Set(todayFiles.flatMap(f=>f.resultDates||[f.resultDate]).filter(Boolean))].sort();
+  const dates=[...new Set(todayFiles.flatMap(f=>f.resultDates||[]).filter(Boolean))].sort();
   const el=document.getElementById('detected-dates');
   const listEl=document.getElementById('date-list');
   if(dates.length===0){el.style.display='none';return;}
@@ -593,7 +584,7 @@ function updateDetectedDates(){
   listEl.innerHTML=dates.map(d=>`<span class="date-badge" style="margin-right:4px">${d}</span>`).join('');
 }
 function updateNextBtn(){
-  const hasFiles=todayFiles.length>0 && todayFiles.some(f=>f.rows&&f.rows.length>0&&(f.resultDates?.length>0||f.resultDate));
+  const hasFiles=todayFiles.length>0 && todayFiles.some(f=>f.rows&&f.rows.length>0);
   const hasStore=getStoreInfo().kwCount>0;
   document.getElementById('btn-next1').disabled=!(hasFiles&&hasStore);
 }
@@ -648,22 +639,22 @@ function runCalc(){
   setTimeout(()=>{
     try{
       const store=loadStore();
-      // liveCalc: 이번 세션에서 계산된 1일치 임시저장
-      // store에 없는 날짜만 저장 → 다음 날짜 prev29에 누적
-      const liveCalc={}; // { sk: { date: { pc, mo } } }
-      const liveCalcComp={}; // { grp: { date: pcmo } }
 
-      // 날짜별 rows 그룹핑
-      const filesByDate={};
+      // row의 수집기간(collectDate) 기준으로 결과날짜별 그룹핑
+      const filesByDate={}; // { "2026-06-18": [row,...] }
       todayFiles.forEach(f=>{
-        f.rows.forEach(row=>{
-          const dt=row.resultDate||'unknown';
-          if(!filesByDate[dt])filesByDate[dt]=[];
-          filesByDate[dt].push(row);
+        f.rows.forEach(r=>{
+          const resultDate = collectDateToResultDate(r.collectDate);
+          const dt = resultDate || 'unknown';
+          if(!filesByDate[dt]) filesByDate[dt]=[];
+          filesByDate[dt].push(r);
         });
       });
 
       calcDates=Object.keys(filesByDate).filter(d=>d!=='unknown').sort();
+      if(filesByDate['unknown']){
+        dbg(`[경고] 날짜 미인식 파일: ${filesByDate['unknown'].map(f=>f.name).join(', ')}`);
+      }
       dbg(`계산 날짜: ${calcDates.join(', ')}`);
       calcResults={};
 
@@ -674,9 +665,9 @@ function runCalc(){
         const startDate=fmt(new Date(bd.getFullYear(),bd.getMonth(),bd.getDate()-29));
         dbg(`\n[${baseDate}(${dayKr})] 전29일: ${startDate}~${endDate}`);
 
-        // 오늘 파일 합산
+        // 오늘 row 합산 (filesByDate[baseDate]는 이미 row 배열)
         const todayMap={};
-        const compTodayMap={};
+        const compTodayMap={}; // { '경쟁사_삼성': pcmo합산, ... }
         filesByDate[baseDate].forEach(r=>{
           if(COMP_GROUPS.has(r.grp)){
             compTodayMap[r.grp]=(compTodayMap[r.grp]||0)+r.pc+r.mo;
@@ -685,51 +676,38 @@ function runCalc(){
           }
         });
 
-        // ── prev29 계산 (일반 키워드) ──────────────────────────
-        // store(초기파일) + liveCalc(이번세션 앞날짜) 합산
-        // store에 baseDate 자체가 있어도 prev29 범위(~endDate)에 포함되지 않으므로 안전
+        // 전29일 합산 (store에서)
         const prev29Map={};
-        const allSks=new Set([...Object.keys(store),...Object.keys(liveCalc)]);
-        allSks.forEach(sk=>{
-          if(sk.startsWith('__comp__'))return;
-          let pcSum=0,moSum=0;
-          // store에서 범위 내 합산
-          Object.entries(store[sk]||{}).forEach(([dt,val])=>{
-            if(dt>=startDate&&dt<=endDate){pcSum+=val.pc||0;moSum+=val.mo||0;}
+        Object.entries(store).forEach(([sk,dates])=>{
+          if(sk.startsWith('__comp__'))return; // 경쟁사는 별도 처리
+          let pcSum=0,moSum=0,cnt=0;
+          Object.entries(dates).forEach(([dt,val])=>{
+            if(dt>=startDate&&dt<=endDate){pcSum+=val.pc||0;moSum+=val.mo||0;cnt++;}
           });
-          // liveCalc에서 범위 내 합산 (store에 없는 날짜만)
-          Object.entries(liveCalc[sk]||{}).forEach(([dt,val])=>{
-            if(dt>=startDate&&dt<=endDate&&!(store[sk]&&store[sk][dt])){
-              pcSum+=val.pc||0; moSum+=val.mo||0;
-            }
-          });
-          prev29Map[sk]={pc:pcSum,mo:moSum};
+          if(cnt>0)prev29Map[sk]={pc:pcSum,mo:moSum,cnt};
         });
-
-        // ── prev29 계산 (경쟁사) ───────────────────────────────
-        const prev29CompMap={};
+        // 경쟁사 그룹별 전29일 합산
+        const prev29CompMap={}; // { '경쟁사_삼성': pcmo합산, ... }
         COMP_GROUPS.forEach(grp=>{
           const sk=`__comp__${grp}`;
-          let sum=0;
-          Object.entries(store[sk]||{}).forEach(([dt,val])=>{
-            if(dt>=startDate&&dt<=endDate)sum+=val.pcmo||0;
-          });
-          // liveCalcComp: store에 없는 앞 날짜만
-          Object.entries(liveCalcComp[grp]||{}).forEach(([dt,val])=>{
-            if(dt>=startDate&&dt<=endDate&&!(store[sk]&&store[sk][dt])){
-              sum+=val||0;
-            }
-          });
-          prev29CompMap[grp]=sum;
+          if(store[sk]){
+            let sum=0;
+            Object.entries(store[sk]).forEach(([dt,val])=>{
+              if(dt>=startDate&&dt<=endDate)sum+=val.pcmo||0;
+            });
+            prev29CompMap[grp]=sum;
+          } else {
+            prev29CompMap[grp]=0;
+          }
         });
-        dbg(`prev29 키워드: ${Object.keys(prev29Map).length}개`);
+        dbg(`전29일 키워드: ${Object.keys(prev29Map).length}개`);
 
-        // ── 1일치 계산 ─────────────────────────────────────────
+        // 1일치 계산
         calcResults[baseDate]={};
         GROUP_ORDER.forEach(g=>{calcResults[baseDate][g]=[];});
 
         Object.entries(todayMap).forEach(([sk,today])=>{
-          const prev29=prev29Map[sk]||{pc:0,mo:0};
+          const prev29=prev29Map[sk]||{pc:0,mo:0,cnt:0};
           const pc1=r2(today.pc-prev29.pc);
           const mo1=r2(today.mo-prev29.mo);
           const gName=today.grp;
@@ -743,6 +721,7 @@ function runCalc(){
           });
         });
 
+        // 경쟁사 그룹별 1일치 계산
         COMP_GROUPS.forEach(grp=>{
           const todayPcmo=compTodayMap[grp]||0;
           const prev29Pcmo=prev29CompMap[grp]||0;
@@ -760,55 +739,36 @@ function runCalc(){
           }
         });
 
+        // 빈 그룹 제거
         Object.keys(calcResults[baseDate]).forEach(g=>{
           if(!calcResults[baseDate][g].length)delete calcResults[baseDate][g];
         });
 
-        // ── liveCalc 저장 (store에 없는 날짜만) ────────────────
+        // store에 저장 (수집기간 날짜 = collectDate 기준, YYYYMMDD → YYYY-MM-DD 형식으로 변환)
+        const rawCollect = filesByDate[baseDate][0]?.collectDate || '';
+        const fileDateKey = rawCollect.length>=8
+          ? `${rawCollect.slice(0,4)}-${rawCollect.slice(4,6)}-${rawCollect.slice(6,8)}`
+          : baseDate;
+        const newStore=loadStore();
         Object.entries(todayMap).forEach(([sk,today])=>{
-          // store에 이미 baseDate 있으면 저장 안 함 (중복 방지)
-          if(store[sk]&&store[sk][baseDate])return;
-          const grpRows=calcResults[baseDate][today.grp]||[];
-          const row=grpRows.find(r=>r.kw.toLowerCase()===today.kwLower);
-          const pc1val=row?row.pc1:r2(today.pc-(prev29Map[sk]?.pc||0));
-          const mo1val=row?row.mo1:r2(today.mo-(prev29Map[sk]?.mo||0));
-          if(!liveCalc[sk])liveCalc[sk]={};
-          liveCalc[sk][baseDate]={pc:pc1val,mo:mo1val};
-          dbg(`  [liveCalc저장] ${sk} ${baseDate}: pc=${pc1val} mo=${mo1val}`);
+          if(!newStore[sk])newStore[sk]={};
+          newStore[sk][fileDateKey]={pc:today.pc,mo:today.mo,type:'pc_mo'};
+          const dts=Object.keys(newStore[sk]).sort();
+          if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete newStore[sk][d]);
         });
-
-        // 경쟁사 liveCalc: store에 없는 날짜만
-        COMP_GROUPS.forEach(grp=>{
-          const sk=`__comp__${grp}`;
-          if(store[sk]&&store[sk][baseDate])return; // store에 있으면 저장 안 함
-          const compRows=calcResults[baseDate][grp]||[];
-          if(!compRows.length)return;
-          if(!liveCalcComp[grp])liveCalcComp[grp]={};
-          liveCalcComp[grp][baseDate]=compRows[0].pcmo1;
-          dbg(`  [liveCalcComp저장] ${grp} ${baseDate}: pcmo=${compRows[0].pcmo1}`);
-        });
-
-        // ── localStorage 저장 ───────────────────────────────────
-        const saveSnap=loadStore();
-        // 일반 키워드: liveCalc에 저장된 것만 (store에 없는 날짜)
-        Object.entries(liveCalc).forEach(([sk,dates])=>{
-          const val=dates[baseDate]; if(!val)return;
-          if(!saveSnap[sk])saveSnap[sk]={};
-          saveSnap[sk][baseDate]={pc:val.pc,mo:val.mo,type:'pc_mo'};
-          const dts=Object.keys(saveSnap[sk]).sort();
-          if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete saveSnap[sk][d]);
-        });
-        // 경쟁사: liveCalcComp에 저장된 것만
-        Object.entries(liveCalcComp).forEach(([grp,dates])=>{
-          const val=dates[baseDate]; if(val===undefined)return;
-          const sk=`__comp__${grp}`;
-          if(!saveSnap[sk])saveSnap[sk]={};
-          saveSnap[sk][baseDate]={pcmo:val,type:'pcmo'};
-          const dts=Object.keys(saveSnap[sk]).sort();
-          if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete saveSnap[sk][d]);
-        });
-        saveStore(saveSnap);
-        dbg(`[저장완료] ${baseDate}`);
+        if(Object.keys(compTodayMap).length>0){
+          COMP_GROUPS.forEach(grp=>{
+            if(compTodayMap[grp]){
+              const sk=`__comp__${grp}`;
+              if(!newStore[sk])newStore[sk]={};
+              newStore[sk][fileDateKey]={pcmo:compTodayMap[grp],type:'pcmo'};
+              const dts=Object.keys(newStore[sk]).sort();
+              if(dts.length>90)dts.slice(0,dts.length-90).forEach(d=>delete newStore[sk][d]);
+            }
+          });
+        }
+        saveStore(newStore);
+        dbg(`[저장] 파일날짜=${fileDateKey}, 결과날짜=${baseDate} 완료`);
 
         setP(Math.round((di+1)/calcDates.length*90));
       });
